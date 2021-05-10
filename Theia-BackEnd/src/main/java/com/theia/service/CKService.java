@@ -129,7 +129,7 @@ public class CKService {
     }
 
 
-//   Services accepting user input producing results.
+//   Services accepting user input producing CK properties results.
     public HashMap<String, Float> generateCustomCKValues(String dir, List<String> ckProperties) throws IOException {
         boolean useJars = false;
         int maxAtOnce = 0;
