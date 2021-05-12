@@ -17,7 +17,7 @@ public class FileUtilService {
 
     public String saveFolder(MultipartFile zip, String dir) throws IOException {
 
-        String basePath = "/home/anasmarg/Desktop/upload/";
+        String basePath = Path.of("").toAbsolutePath().toString() + "/upload/";
 
         if(zip.getOriginalFilename() == null || zip.isEmpty()){
             return "";

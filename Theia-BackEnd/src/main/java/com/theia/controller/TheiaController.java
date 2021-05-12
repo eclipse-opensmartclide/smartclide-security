@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 
@@ -39,13 +40,21 @@ public class TheiaController {
 //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
     @GetMapping("retrieve")
     public ResponseEntity<HashMap<String, HashMap<String, Float>>> retrieveCode(@RequestParam String url) throws IOException, InterruptedException {
-        String dir = this.theiaService.retrieveGithubCode(url);
+
+//      Downloading the Github Project.
+        String dir = this.theiaService.retrieveGithubCode(url) + "/";
         HashMap<String, HashMap<String, Float>> anaylisis = new HashMap<>();
+
+//      Analyzing project with CK tool, alongside with the pdefault values chosed for the CK tool.
         HashMap<String, Float> ckValues = this.ckService.generateCKValues(dir);
         anaylisis.put("CK", ckValues);
+
+//      Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
         HashMap<String, Float> pmdValues = this.pmdService.pmdValues(ckValues.get("loc"), dir);
         anaylisis.put("PMD", pmdValues);
         this.devSkimService.generateDevSkimValues(dir);
+
+//      Return the results.
         return new ResponseEntity<>(anaylisis, HttpStatus.OK);
     }
 
@@ -76,6 +85,7 @@ public class TheiaController {
 
 //      Unzip the project in the dir path chosed. The dir is hardcoded for local testing.
         String path = this.fileUtilService.saveFolder(zip, dir);
+        System.out.println(path);
 
 //      Creating the analysis HashMap. This map will be returned from the endpoint, storing the results and the values of the properties of the tools chosed.
         HashMap<String, HashMap<String, Float>> analysis = new HashMap<>();
@@ -108,7 +118,8 @@ public class TheiaController {
     @GetMapping(value = "ckReport", produces = "text/csv")
     public ResponseEntity downloadCKReport(@RequestParam("dir") String path) throws IOException {
 
-        String workDir = "/home/anasmarg/Desktop/upload/" + path;
+
+        String workDir = Path.of("").toAbsolutePath().toString() + "/upload/" + path;
         File file = new File(workDir + "/ck.csv");
 
         this.ckService.parseCKReport(workDir);

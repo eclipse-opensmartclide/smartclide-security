@@ -5,6 +5,7 @@ import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class PMDService {
 
         for(String ruleset: rulesets){
             pmdValues.put(ruleset, 0f);
-            Process process = Runtime.getRuntime().exec( System.getenv("HOME") +"/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R /home/anasmarg/Desktop/Rulesets/" + ruleset +".xml -f csv -r " + path + ruleset +".csv");
+            Process process = Runtime.getRuntime().exec( System.getenv("HOME") +"/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + ruleset +".csv");
             List<List<String>> records = new ArrayList<List<String>>();
 
             File file = new File(path  + ruleset + ".csv");
@@ -72,7 +73,7 @@ public class PMDService {
         HashMap<String, Float> pmdValues = new HashMap<>();
         for(String ruleset: rulesets){
             pmdValues.put(ruleset, 0f);
-            Process process = Runtime.getRuntime().exec( System.getenv("HOME") +"/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R /home/anasmarg/Desktop/Rulesets/" + ruleset +".xml -f csv -r " + path + ruleset +".csv");
+            Process process = Runtime.getRuntime().exec( System.getenv("HOME") +"/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + ruleset +".csv");
             List<List<String>> records = new ArrayList<List<String>>();
 
             File file = new File(path  + ruleset + ".csv");
@@ -113,4 +114,5 @@ public class PMDService {
 
         return pmdValues;
     }
+
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
@@ -15,7 +16,7 @@ public class TheiaService {
     public String retrieveGithubCode(String url) throws IOException {
         String cloneDirectoryPath = url.replace("https://github.com/", "");
         cloneDirectoryPath = cloneDirectoryPath.replace("/", "_");
-
+        cloneDirectoryPath = Path.of("").toAbsolutePath().toString() + "/upload/" + cloneDirectoryPath;
         File dir = new File(cloneDirectoryPath);
 
         if(dir.exists()){
