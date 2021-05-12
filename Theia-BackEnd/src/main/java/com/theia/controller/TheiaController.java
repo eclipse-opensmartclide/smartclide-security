@@ -38,7 +38,7 @@ public class TheiaController {
 
 
 //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
-    @GetMapping("retrieve")
+    @PostMapping("retrieve")
     public ResponseEntity<HashMap<String, HashMap<String, Float>>> retrieveCode(@RequestParam String url) throws IOException, InterruptedException {
 
 //      Downloading the Github Project.
