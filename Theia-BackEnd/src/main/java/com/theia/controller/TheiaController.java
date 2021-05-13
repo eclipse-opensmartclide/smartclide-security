@@ -58,6 +58,41 @@ public class TheiaController {
         return new ResponseEntity<>(anaylisis, HttpStatus.OK);
     }
 
+
+    //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
+    @PostMapping("github")
+    public ResponseEntity<HashMap<String, HashMap<String, Float>>> githubRetrieve(@RequestPart("url") String url, @RequestPart("properties") LinkedHashMap<String, LinkedHashMap<String, List<Float>>> properties) throws IOException, InterruptedException {
+
+        properties.get("CK").put("loc", new ArrayList<>());
+
+//      Downloading the Github Project.
+        String dir = this.theiaService.retrieveGithubCode(url) + "/";
+        HashMap<String, HashMap<String, Float>> analysis = new HashMap<>();
+
+//      Analyzing project with CK tool, alongside with the default values chosed for the CK tool.
+        HashMap<String, Float> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(properties.get("CK").keySet()));
+        analysis.put("CK", ckValues);
+
+//      Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
+        HashMap<String, Float> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir, new ArrayList<>(properties.get("PMD").keySet()));
+        analysis.put("PMD", pmdValues);
+
+        //      Calculating property scores for the properties the user chose.
+        HashMap<String, Float> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, properties);
+        analysis.put("Property Scores", propertyScores);
+
+//      Calculating characteristic scores for the characteristics the user chose.
+        HashMap<String, Float> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, properties);
+        analysis.put("Characteristic Scores", characteristicScores);
+
+//      Calculating security index.
+        HashMap<String, Float> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
+        analysis.put("Security index", securityIndex);
+
+//      Return the analysis map.
+        return new ResponseEntity<>(analysis, HttpStatus.CREATED);
+    }
+
 //  Endpoint uploading project as a zip folder, analyzing the project with default values of the CK and PMD tools.
     @PostMapping("uploadFolder")
     public ResponseEntity<HashMap<String, HashMap<String, Float>>> uploadFolder(@RequestPart("folder") MultipartFile zip, @RequestPart("dir") String dir) throws IOException, InterruptedException {
@@ -85,7 +120,6 @@ public class TheiaController {
 
 //      Unzip the project in the dir path chosed. The dir is hardcoded for local testing.
         String path = this.fileUtilService.saveFolder(zip, dir);
-        System.out.println(path);
 
 //      Creating the analysis HashMap. This map will be returned from the endpoint, storing the results and the values of the properties of the tools chosed.
         HashMap<String, HashMap<String, Float>> analysis = new HashMap<>();
