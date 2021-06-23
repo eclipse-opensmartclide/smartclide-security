@@ -9,32 +9,30 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Service
 public class TheiaService {
 
-    public String retrieveGithubCode(String url) throws IOException {
-        String cloneDirectoryPath = url.replace("https://github.com/", "");
-        cloneDirectoryPath = cloneDirectoryPath.replace("/", "_");
-        cloneDirectoryPath = Path.of("").toAbsolutePath().toString() + "/upload/" + cloneDirectoryPath;
-        File dir = new File(cloneDirectoryPath);
+    public File retrieveGithubCode(String url, UUID id) throws IOException {
+
+        File dir = new File(System.getProperty("user.dir") + "/upload/" + id.toString());
 
         if(dir.exists()){
             FileUtils.deleteDirectory(dir);
         }
 
         try {
-            System.out.println("Cloning "+ url +" into "+cloneDirectoryPath);
+            System.out.println("Cloning " + url +" into " + id.toString());
             Git.cloneRepository()
                     .setURI(url)
-                    .setDirectory(Paths.get(cloneDirectoryPath).toFile())
+                    .setDirectory(Paths.get(System.getProperty("user.dir") + "/upload/" + id.toString()).toFile())
                     .call();
             System.out.println("Completed Cloning");
         } catch (GitAPIException e) {
             System.out.println("Exception occurred while cloning repo");
             e.printStackTrace();
         }
-
-        return cloneDirectoryPath;
+        return dir;
     }
 }
