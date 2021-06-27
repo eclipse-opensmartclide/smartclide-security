@@ -1,6 +1,8 @@
 package com.theia.controller;
 
 
+import com.theia.model.NodeJS;
+import com.theia.model.Property;
 import com.theia.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -132,6 +134,46 @@ public class TheiaController {
           return new ResponseEntity<>(analysis, HttpStatus.CREATED);
       }
     }
+
+    @PostMapping("javaClient")
+    public ResponseEntity<LinkedHashMap<String, HashMap<String, Double>>> javaClient(@RequestPart("url") String url, @RequestPart("properties")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
+        UUID id = UUID.randomUUID();
+
+        properties.get("CK").put("loc", new ArrayList<>());
+        HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
+        HashMap<String, Double> sonarPropertyScores = new HashMap<>();
+        Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
+
+        properties.put("Sonarqube", sonarProperties.get("metricKeys"));
+        properties.get("Sonarqube").putAll(sonarProperties.get("vulnerabilities"));
+
+
+//      Downloading the Github Project.
+        File dir = this.theiaService.retrieveGithubCode(url, id);
+        LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
+
+//      Analyzing project with CK tool, alongside with the default values chosed for the CK tool.
+        HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(properties.get("CK").keySet()));
+        analysis.put("CK", ckValues);
+
+//      Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
+        HashMap<String, Double> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), new ArrayList<>(properties.get("PMD").keySet()));
+        analysis.put("PMD", pmdValues);
+
+        //SONARQUBE
+        this.sonarqubeService.sonarJavaAnalysis(id, token);
+        TimeUnit.SECONDS.sleep(10);
+//      Analyze Sonarqube Metrics Hardcoded.
+        sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
+
+//      Analyze Sonarqube Vulnerabilities Hardcoded.
+        sonarAnalysis.get("Sonarqube").putAll(this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("vulnerabilities").keySet(), id.toString()));
+        analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+
+        return new ResponseEntity<>(analysis, HttpStatus.OK);
+    }
+
+
 
 //  Endpoint uploading project as a zip folder, analyzing the project with default values of the CK and PMD tools.
 //    @PostMapping("uploadFolder")
