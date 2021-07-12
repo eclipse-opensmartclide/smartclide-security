@@ -86,7 +86,7 @@ public class SonarqubeService {
             headers.setBasicAuth(token, "");
             HttpEntity request = new HttpEntity(headers);
 
-            ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/issues/search?componentKeys=" + id + "&types=VULNERABILITY&sonarsourceSecurity=" + vul,
+            ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul,
                     HttpMethod.GET,
                     request,
                     String.class
@@ -94,8 +94,8 @@ public class SonarqubeService {
 
             String json = response.getBody();
             JSONObject object = new JSONObject(json);
-
-            sonarqubeVulnerabilities.put(vul, ((Integer)object.get("total") * 1000.0/ linesofCode(token, id)));
+            object = (JSONObject) object.get("paging");
+            sonarqubeVulnerabilities.put(vul, ((Integer)object.get("total") * 1000.0/ linesOfCode(token, id)));
         }
 
         return sonarqubeVulnerabilities;
@@ -143,7 +143,7 @@ public class SonarqubeService {
     }
 
     // Returns the lines of code of a project.
-    public Double linesofCode(String token, String id) {
+    public Double linesOfCode(String token, String id) {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

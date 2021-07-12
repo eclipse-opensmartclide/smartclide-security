@@ -2,7 +2,7 @@ import requests
 import json
 
 def create_characteristics_dict():
-    characteristics = ['Assignment', 'Logging', 'NullPointer', 'MisusedFunctionality', 'ResourceHandling', 'Adjustability', 'ExceptionHandling', 'loc', 'cbo', 'wmc', 'lcom', 'bugs', 'complexity', 'code_smells', 'ncloc', 'weak-cryptography', 'dos', 'csrf', 'others', 'buffer-overflow']
+    characteristics= ['loc','lcom', 'cbo', 'wmc', 'Adjustability', 'ExceptionHandling', 'Assignment', 'Logging', 'NullPointer', 'ResourceHandling','MisusedFunctionality', 'complexity', 'code_smells', 'bugs', 'vulnerabilities', 'branch_coverage', 'buffer-overflow', 'sql-injection', 'dos', 'csrf', 'weak-cryptography', 'others', 'auth', 'insecure-conf', 'ncloc']
     thresholds = {}
 
     for char in characteristics:
@@ -12,7 +12,7 @@ def create_characteristics_dict():
 
 def github_projects():
 
-    r = requests.get('https://api.github.com/search/repositories?q="pom.xml"&order=desc&sort=stars&per_page=100')
+    r = requests.get('https://api.github.com/search/repositories?q=pom.xml&order=desc&sort=stars&per_page=100&language=Java&is=public')
     list_url = []
 
     for repo in r.json()['items']:
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     urls = github_projects()
 
     properties = {"CK":{"lcom":[0, 0.125, 0.7], "cbo":[0.01, 0.207, 0.5], "wmc":[0.01, 0.207, 0.5]}, "PMD":{"Adjustability":[0, 1.58, 12.14], "ExceptionHandling":[0, 3.34, 11.62], "Assignment":[0, 3.34, 11.62], "Logging":[0, 3.34, 11.62], 'NullPointer':[0, 3.3, 11.62], 'ResourceHandling':[0, 3.3, 11.62],'MisusedFunctionality': [0, 3.3, 11.62]}}
-    sonarqube = {"metricKeys":{"complexity":[0, 1.147, 9.067], "code_smells":[0, 0.5, 2], "bugs":[0, 1.2, 3.7]}, "vulnerabilities": {"buffer-overflow":[0, 0.12, 0.7], "dos":[0, 1.58, 9.1], "csrf":[0, 3.3, 11.62], "weak-cryptography":[0, 3.1, 9.6], "others":[0, 1, 3]}}
+    sonarqube = {"metricKeys":{"complexity":[0, 1.147, 9.067], "code_smells":[0, 0.5, 2], "bugs":[0, 1.2, 3.7], "vulnerabilities":[0, 1.147, 9.067], "branch_coverage":[0, 0.5, 2]}, "vulnerabilities": {"buffer-overflow":[0, 0.12, 0.7], "sql-injection":[0, 0.5, 2], "dos":[0, 1.58, 9.1], "csrf":[0, 3.3, 11.62], "weak-cryptography":[0, 3.1, 9.6], "others":[0, 1, 3], "auth":[0, 3.3, 11.62], "insecure-conf":[0, 3.1, 9.6]}}
     headers = {'content-type': 'application/json', }
     counter = 0
 
