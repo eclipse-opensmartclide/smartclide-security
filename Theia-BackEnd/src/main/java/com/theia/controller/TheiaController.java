@@ -1,8 +1,6 @@
 package com.theia.controller;
 
 
-import com.theia.model.NodeJS;
-import com.theia.model.Property;
 import com.theia.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @RestController
-@RequestMapping("/code/")
+@RequestMapping("/smartclide/")
 @CrossOrigin("*")
 public class TheiaController {
 
@@ -42,7 +40,7 @@ public class TheiaController {
     private static String token = "3fa6958c8209021fa8e2d7f0f2cb899256494601";
 
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
-    @PostMapping("github")
+    @PostMapping("analyze")
     public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestPart("url") String url, @RequestPart("language")String language, @RequestPart("properties") LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
       if(language.equals("Maven")){
           UUID id = UUID.randomUUID();
@@ -69,7 +67,7 @@ public class TheiaController {
 
           //SONARQUBE
           this.sonarqubeService.sonarJavaAnalysis(id, token);
-          TimeUnit.SECONDS.sleep(15);
+          TimeUnit.SECONDS.sleep(30);
 //      Analyze Sonarqube Metrics Hardcoded.
           sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
 
@@ -78,15 +76,15 @@ public class TheiaController {
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
           HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, properties);
-          analysis.put("Property Scores", propertyScores);
+          analysis.put("Property_Scores", propertyScores);
 
 //      Calculating characteristic scores for the characteristics the user chose.
           HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, properties);
-          analysis.put("Characteristic Scores", characteristicScores);
+          analysis.put("Characteristic_Scores", characteristicScores);
 
 //      Calculating security index.
           HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
-          analysis.put("Security index", securityIndex);
+          analysis.put("Security_index", securityIndex);
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
@@ -108,7 +106,7 @@ public class TheiaController {
 
 
           this.sonarqubeService.sonarPythonAnalysis(id, token);
-          TimeUnit.SECONDS.sleep(15);
+          TimeUnit.SECONDS.sleep(10);
 
 //      Analyze Sonarqube Metrics Hardcoded.
           sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
@@ -118,15 +116,15 @@ public class TheiaController {
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
           HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, properties);
-          analysis.put("Property Scores", propertyScores);
+          analysis.put("Property_Scores", propertyScores);
 
 //      Calculating characteristic scores for the characteristics the user chose.
           HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, properties);
-          analysis.put("Characteristic Scores", characteristicScores);
+          analysis.put("Characteristic_Scores", characteristicScores);
 
 //      Calculating security index.
           HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
-          analysis.put("Security index", securityIndex);
+          analysis.put("Security_index", securityIndex);
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
@@ -190,7 +188,7 @@ public class TheiaController {
 
 
         this.sonarqubeService.sonarPythonAnalysis(id, token);
-        TimeUnit.SECONDS.sleep(15);
+        TimeUnit.SECONDS.sleep(5);
 
 //      Analyze Sonarqube Metrics Hardcoded.
         sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
@@ -277,4 +275,10 @@ public class TheiaController {
 //                .contentType(MediaType.parseMediaType("text/csv"))
 //                .body(new FileSystemResource(file));
 //    }
+
+    @PostMapping("test")
+    public ResponseEntity<HashMap<String, String>> test(){
+        System.out.println("Worked!");
+        return new ResponseEntity<HashMap<String, String>>(new HashMap<>() {{put("1","Messages");put("2" ,"Gamw to mouni pou se petage");}}, HttpStatus.OK);
+    }
 }

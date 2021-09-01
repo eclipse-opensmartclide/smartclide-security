@@ -1,0 +1,68 @@
+<div class="container" *ngIf="!isLoading && !isFetched">
+    <div class="row">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-sm-offset-1 col-md-offset-2">
+            <form #f="ngForm" (submit)="onSubmit(f)" >
+                <br>
+                <br>
+                <br>
+                <br>
+                <div id="project-analyze">
+                    <div class="form-group">
+                        <label for="projectURL">Project URL</label>
+                        <input 
+                            type="text" 
+                            id="projectURL" 
+                            class="form-control"
+                            ngModel
+                            name="projectURL">
+                    </div>
+                    <br>
+                    <br>
+                    <br>
+                    <div class="form-group">
+                        <label for="projectLanguage">Language</label>
+                        <select 
+                            name="language" 
+                            id="language"
+                            class="form-control"
+                            ngModel>
+                            <option value="Maven">Maven</option>
+                            <option value="Python">Python</option>
+                        </select>
+                    </div>
+                    <br>
+                    <br>
+                </div>
+                <button class="btn btn-primary" type="submit">Analyze</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="container" *ngIf="isLoading">
+    <h3>Loading....</h3>
+</div>
+<div class="container" *ngIf="isFetched && !isLoading">
+    <div class="row">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-sm-offset-1 col-md-offset-2">
+            <div style="display: block;">
+                <canvas baseChart
+                  [datasets]="radarChartData"
+                  [options]="radarChartOptions"
+                  [labels]="radarChartLabels"
+                  [chartType]="radarChartType">
+                </canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas baseChart 
+                [datasets]="barChartData"
+                [labels]="barChartLabels"
+                [options]="barChartOptions"
+                [plugins]="barChartPlugins"
+                [legend]="barChartLegend"
+                [chartType]="barChartType">
+              </canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
