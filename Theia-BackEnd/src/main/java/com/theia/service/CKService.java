@@ -14,7 +14,7 @@ import java.util.*;
 
 @Service
 public class CKService {
-    
+
     public static List<List<String>> filterCKRecords(List<List<String>> records, List<String> properties){
 
         List<List<String>> metrics = new ArrayList<List<String>>();
