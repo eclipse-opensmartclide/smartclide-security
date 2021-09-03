@@ -76,6 +76,12 @@ public class TheiaController {
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
           HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, properties);
+          propertyScores.put("weak_cryptography", propertyScores.get("weak-cryptography"));
+          propertyScores.remove("weak-cryptography");
+          propertyScores.put("sql_injection", propertyScores.get("sql-injection"));
+          propertyScores.remove("sql-injection");
+          propertyScores.put("insecure_conf", propertyScores.get("insecure-conf"));
+          propertyScores.remove("insecure-conf");
           analysis.put("Property_Scores", propertyScores);
 
 //      Calculating characteristic scores for the characteristics the user chose.

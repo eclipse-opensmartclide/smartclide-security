@@ -175,9 +175,9 @@ public class MeasureService {
                 if(characteristic.equals("loc") || characteristic.equals("ncloc")){
                     continue;
                 }else{
-                    Property attr = new Property(characteristic, analysis.get(tool).get(characteristic));
-                    attr.setCustomThresholds(properties.get(tool).get(characteristic));
-                    scores.put(characteristic, attr.calculateCustomScore());
+                        Property attr = new Property(characteristic, analysis.get(tool).get(characteristic));
+                        attr.setCustomThresholds(properties.get(tool).get(characteristic));
+                        scores.put(characteristic, attr.calculateCustomScore());
                 }
             }
         }

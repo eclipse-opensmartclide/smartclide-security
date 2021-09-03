@@ -45,9 +45,10 @@ export class AnalyzeComponent
             this.onDisplay(responseData);
             for(const key in responseData){
                 console.log(key);
-                console.log(responseData.Property_Scores);
-                console.log(responseData);
+        
             }
+            console.log(responseData.Property_Scores);
+            console.log(responseData);
         });
     }
 
@@ -82,7 +83,7 @@ export class AnalyzeComponent
         for(const key in data['Property_Scores']){
             this.barChartLabels.push(key);    
         }
-        this.propertyScores.push(data.Property_Scores.Assignment, data['Property_Scores'].ExceptionHandling, data['Property_Scores'].Logging, data['Property_Scores'].MisusedFunctionality, data['Property_Scores'].NullPointer, data['Property_Scores'].ResourceHandling, data['Property_Scores'].auth, data['Property_Scores'].cbo, data['Property_Scores'].dos, data['Property_Scores'].lcom, data['Property_Scores'].vulnerabilities, data['Property_Scores'].wmc);
+        this.propertyScores.push(data.Property_Scores.Assignment, data['Property_Scores'].ExceptionHandling, data['Property_Scores'].Logging, data['Property_Scores'].MisusedFunctionality, data['Property_Scores'].NullPointer, data['Property_Scores'].auth, data['Property_Scores'].cbo, data['Property_Scores'].dos, data['Property_Scores'].lcom, data['Property_Scores'].wmc, data.Property_Scores.cbo, data.Property_Scores.ResourceHandling, data.Property_Scores.vulnerabilities, data.Property_Scores.weak_cryptography, data.Property_Scores.sql_injection, data.Property_Scores.weak_cryptography);
         this.characteristicScores.push(0, data['Characteristic_Scores'].Availability, data['Characteristic_Scores'].Confidentiality, data['Characteristic_Scores'].Integrity);
         this.radarChartData.push({data: this.characteristicScores, label: 'Characteristics'});
         this.barChartData.push({data: this.propertyScores, label: 'Property Scores'});
