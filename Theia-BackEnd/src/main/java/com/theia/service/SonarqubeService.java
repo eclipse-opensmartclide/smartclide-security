@@ -1,6 +1,7 @@
 package com.theia.service;
 
 
+import com.theia.model.SonarIssue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
@@ -12,15 +13,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
 public class SonarqubeService {
 
-    public void sonarJavaAnalysis(UUID id, String token) throws InterruptedException, IOException {
-        final Process p1 = Runtime.getRuntime().exec("mvn -f /home/anasmarg/Desktop/smartclide-security/Theia-BackEnd/upload/" + id.toString() + "/ package");
+    public void sonarMavenAnalysis(UUID id, String token) throws InterruptedException, IOException {
+
+       final Process p1 = Runtime.getRuntime().exec(new String[]{"mvn", "package", "-DskipTests"}, null, new File(System.getProperty("user.dir") + "/upload/" + id));
+//        final Process p1 = Runtime.getRuntime().exec("mvn -f "+ System.getProperty("user.dir") + "/upload/" + id.toString() + "/ package");
+
         new Thread(new Runnable() {
             public void run() {
                 BufferedReader input = new BufferedReader(new InputStreamReader(p1.getInputStream()));
@@ -36,7 +44,7 @@ public class SonarqubeService {
         }).start();
         p1.waitFor();
 
-        final Process p = Runtime.getRuntime().exec("mvn -f /home/anasmarg/Desktop/smartclide-security/Theia-BackEnd/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
+        final Process p = Runtime.getRuntime().exec("mvn -f " + System.getProperty("user.dir") + "/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
         new Thread(new Runnable() {
             public void run() {
                 BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -54,7 +62,7 @@ public class SonarqubeService {
     }
 
     public void sonarPythonAnalysis(UUID id, String token) throws InterruptedException, IOException {
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=\"3fa6958c8209021fa8e2d7f0f2cb899256494601\" -v \"/home/anasmarg/Desktop/smartclide-security/Theia-BackEnd/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id);
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=\"3fa6958c8209021fa8e2d7f0f2cb899256494601\" -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id);
         builder.redirectErrorStream(true);
 
         //Execute the command
@@ -68,6 +76,24 @@ public class SonarqubeService {
                 if (line == null) { break; }
             }
         }catch(IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void sonarCppAnalysis(UUID id, String token){
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=\"3fa6958c8209021fa8e2d7f0f2cb899256494601\" -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id + " -Dsonar.cxx.file.suffixes=.cpp,.cxx,.cc,.c,.hxx,.hpp,.hh,.h");
+        builder.redirectErrorStream(true);
+
+        try {
+            Process p = builder.start();
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+
+            while(true){
+                line = r.readLine();
+                if(line == null){break;}
+            }
+        } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -118,7 +144,7 @@ public class SonarqubeService {
                 request,
                 String.class
         );
-
+        System.out.println(response);
         // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
         String json = response.getBody();
         JSONObject object = new JSONObject(json);
@@ -130,7 +156,8 @@ public class SonarqubeService {
             sonarMetrics.put(jsonObject.get("metric").toString(), Double.valueOf(jsonObject.get("value").toString()));
         }
 
-
+        System.out.println(sonarMetrics.keySet());
+        System.out.println(sonarMetrics.get("ncloc").toString());
         for(String key: sonarMetrics.keySet()){
             if(key.equals("ncloc")){
                 break;
@@ -168,5 +195,33 @@ public class SonarqubeService {
         }
 
         return sonarMetrics.get("ncloc");
+    }
+
+    public List<SonarIssue> sonarqubeIssues(String key, String token){
+        HashMap<String, Double> sonarMetrics = new HashMap<>();
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(token, "");
+        HttpEntity request = new HttpEntity(headers);
+        List<SonarIssue> issues = new ArrayList<>();
+
+        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/issues/search?componentKeys=" + key +"&ps=500",
+                HttpMethod.GET,
+                request,
+                String.class
+        );
+
+        // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
+        String json = response.getBody();
+        JSONObject object = new JSONObject(json);
+        JSONArray array = new JSONArray(object.get("issues").toString());
+        for(int i = 0; i < array.length(); i++){
+            JSONObject input = (JSONObject) array.get(i);
+            if(input.keySet().contains("line")){
+                SonarIssue sonarIssue = new SonarIssue(input.get("severity").toString(), input.get("line").toString(), input.get("message").toString(), input.get("component").toString().replace(key + ":", ""));
+                issues.add(sonarIssue);
+            }
+        }
+        return issues;
     }
 }

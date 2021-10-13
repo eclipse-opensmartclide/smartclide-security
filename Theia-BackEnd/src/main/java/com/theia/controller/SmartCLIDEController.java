@@ -1,6 +1,7 @@
 package com.theia.controller;
 
 
+import com.theia.model.SonarIssue;
 import com.theia.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 
 @RestController
-@RequestMapping("/smartclide/")
+@RequestMapping("/smartclide")
 @CrossOrigin("*")
-public class TheiaController {
+public class SmartCLIDEController {
 
     @Autowired
     private TheiaService theiaService;
@@ -31,16 +32,16 @@ public class TheiaController {
     private FileUtilService fileUtilService;
 
     @Autowired
-    private DevSkimService devSkimService;
+    private SonarqubeService sonarqubeService;
 
     @Autowired
-    private SonarqubeService sonarqubeService;
+    private VPService vpService;
 
 
     private static String token = "3fa6958c8209021fa8e2d7f0f2cb899256494601";
 
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
-    @PostMapping("analyze")
+    @PostMapping("/analyze")
     public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestPart("url") String url, @RequestPart("language")String language, @RequestPart("properties") LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
       if(language.equals("Maven")){
           UUID id = UUID.randomUUID();
@@ -66,7 +67,7 @@ public class TheiaController {
           analysis.put("PMD", pmdValues);
 
           //SONARQUBE
-          this.sonarqubeService.sonarJavaAnalysis(id, token);
+          this.sonarqubeService.sonarMavenAnalysis(id, token);
           TimeUnit.SECONDS.sleep(30);
 //      Analyze Sonarqube Metrics Hardcoded.
           sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
@@ -94,9 +95,13 @@ public class TheiaController {
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
+//      Include Vulnerability Prediction Model.
+          analysis.put("Vulnerability_Prediction", this.vpService.vulnerabilityPrediction(url, "java"));
+          analysis.put("ProjectKey", new HashMap<String, Double>(){{put(id.toString(), 0d);}});
+
 //      Return the analysis map.
           return new ResponseEntity<>(analysis, HttpStatus.CREATED);
-      }else{
+      }else {
           UUID id = UUID.randomUUID();
           HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
           HashMap<String, Double> sonarPropertyScores = new HashMap<>();
@@ -112,12 +117,11 @@ public class TheiaController {
 
 
           this.sonarqubeService.sonarPythonAnalysis(id, token);
-          TimeUnit.SECONDS.sleep(10);
+          TimeUnit.SECONDS.sleep(30);
 
-//      Analyze Sonarqube Metrics Hardcoded.
+
           sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
 
-//      Analyze Sonarqube Vulnerabilities Hardcoded.
           sonarAnalysis.get("Sonarqube").putAll(this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("vulnerabilities").keySet(), id.toString()));
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
@@ -133,16 +137,18 @@ public class TheiaController {
           analysis.put("Security_index", securityIndex);
 
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+          analysis.put("ProjectKey", new HashMap<String, Double>() {{
+              put(id.toString(), 0d);
+          }});
 
 //      Return the analysis map.
           return new ResponseEntity<>(analysis, HttpStatus.CREATED);
       }
     }
 
-    @PostMapping("javaClient")
+    @PostMapping("/javaClient")
     public ResponseEntity<LinkedHashMap<String, HashMap<String, Double>>> javaClient(@RequestPart("url") String url, @RequestPart("properties")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
         UUID id = UUID.randomUUID();
-
         properties.get("CK").put("loc", new ArrayList<>());
         HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
         HashMap<String, Double> sonarPropertyScores = new HashMap<>();
@@ -155,7 +161,6 @@ public class TheiaController {
 //      Downloading the Github Project.
         File dir = this.theiaService.retrieveGithubCode(url, id);
         LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
 //      Analyzing project with CK tool, alongside with the default values chosed for the CK tool.
         HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(properties.get("CK").keySet()));
         analysis.put("CK", ckValues);
@@ -165,7 +170,7 @@ public class TheiaController {
         analysis.put("PMD", pmdValues);
 
         //SONARQUBE
-        this.sonarqubeService.sonarJavaAnalysis(id, token);
+        this.sonarqubeService.sonarMavenAnalysis(id, token);
         TimeUnit.SECONDS.sleep(15);
 //      Analyze Sonarqube Metrics Hardcoded.
         sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
@@ -177,7 +182,7 @@ public class TheiaController {
         return new ResponseEntity<>(analysis, HttpStatus.OK);
     }
 
-    @PostMapping("pythonClient")
+    @PostMapping("/pythonClient")
     public ResponseEntity<LinkedHashMap<String, HashMap<String, Double>>> pythonClient(@RequestPart("url") String url, @RequestPart("properties")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
         UUID id = UUID.randomUUID();
         HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
@@ -207,6 +212,13 @@ public class TheiaController {
         return new ResponseEntity<>(analysis, HttpStatus.OK);
     }
 
+    @GetMapping("/cpp")
+    public ResponseEntity<Void> cppTesting(@RequestPart("url")String url) throws IOException {
+        UUID id = UUID.randomUUID();
+        File dir = this.theiaService.retrieveGithubCode(url, id);
+        this.sonarqubeService.sonarCppAnalysis(id, token);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
 //  Endpoint uploading project as a zip folder, analyzing the project with default values of the CK and PMD tools.
 //    @PostMapping("uploadFolder")
@@ -282,9 +294,19 @@ public class TheiaController {
 //                .body(new FileSystemResource(file));
 //    }
 
-    @PostMapping("test")
-    public ResponseEntity<HashMap<String, String>> test(){
-        System.out.println("Worked!");
-        return new ResponseEntity<HashMap<String, String>>(new HashMap<>() {{put("1","Messages");put("2" ,"Gamw to mouni pou se petage");}}, HttpStatus.OK);
+    @GetMapping("/sonarIssues")
+    public ResponseEntity<List<SonarIssue>> test(@RequestParam("projectKey")String key){
+        return new ResponseEntity<>(this.sonarqubeService.sonarqubeIssues(key, token), HttpStatus.OK);
+    }
+
+    @GetMapping("/dummy")
+    public ResponseEntity<Void> dummy(){
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @GetMapping("dir")
+    public ResponseEntity<String> dir(){
+        System.out.println();
+        return new ResponseEntity<>(System.getProperty("user.dir"), HttpStatus.OK);
     }
 }

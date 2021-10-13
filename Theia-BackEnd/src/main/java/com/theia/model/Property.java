@@ -18,7 +18,7 @@ public class Property {
     }
 
     public void setThresholds(HashMap<String, Double> thresholds){
-        thresholds = thresholds;
+        this.thresholds = thresholds;
     }
 
 

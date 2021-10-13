@@ -5,7 +5,6 @@ import com.github.mauricioaniche.ck.CKClassResult;
 import com.github.mauricioaniche.ck.CKNotifier;
 import com.github.mauricioaniche.ck.ResultWriter;
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +15,11 @@ import java.util.*;
 public class CKService {
 
     public static List<List<String>> filterCKRecords(List<List<String>> records, List<String> properties){
-
         List<List<String>> metrics = new ArrayList<List<String>>();
         List<Integer> indexes= new ArrayList<>();
-      for(String property: properties){
+        for(String property: properties){
             indexes.add(records.get(0).indexOf(property));
         }
-
         for(List<String> record: records){
             List<String> metric = new ArrayList<>();
 
@@ -35,51 +32,51 @@ public class CKService {
         return metrics;
     }
 
-    public static void parseCKReport(File dir) throws IOException {
-        List<List<String>> records = new ArrayList<List<String>>();
+//    public static void parseCKReport(File dir) throws IOException {
+//        List<List<String>> records = new ArrayList<List<String>>();
+//
+//        try (CSVReader csvReader = new CSVReader(new FileReader(dir + "/class.csv"));) {
+//            String[] values = null;
+//
+//            while ((values = csvReader.readNext()) != null) {
+//                records.add(Arrays.asList(values));
+//            }
+//        } catch (CsvValidationException | FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//       int[] indexes = new int[]{records.get(0).indexOf("file"), records.get(0).indexOf("cbo"), records.get(0).indexOf("wmc"), records.get(0).indexOf("lcom"), records.get(0).indexOf("loc")};
+//
+//        List<List<String>> ckRecords = new ArrayList<>();
+//
+//        for(List<String> record: records){
+//
+//            List<String> filteredRecords = new ArrayList<>();
+//            for(int index: indexes){
+//                filteredRecords.add(record.get(index));
+//            }
+//            ckRecords.add(filteredRecords);
+//        }
+//
+//        ckRecords.add(0, Arrays.asList("=============== CLASS.CSV ==============="));
+//
+//        writeCSVReport(ckRecords,dir.toString() + "/ck");
+//    }
 
-        try (CSVReader csvReader = new CSVReader(new FileReader(dir + "/class.csv"));) {
-            String[] values = null;
-
-            while ((values = csvReader.readNext()) != null) {
-                records.add(Arrays.asList(values));
-            }
-        } catch (CsvValidationException | FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-       int[] indexes = new int[]{records.get(0).indexOf("file"), records.get(0).indexOf("cbo"), records.get(0).indexOf("wmc"), records.get(0).indexOf("lcom"), records.get(0).indexOf("loc")};
-
-        List<List<String>> ckRecords = new ArrayList<>();
-
-        for(List<String> record: records){
-
-            List<String> filteredRecords = new ArrayList<>();
-            for(int index: indexes){
-                filteredRecords.add(record.get(index));
-            }
-            ckRecords.add(filteredRecords);
-        }
-
-        ckRecords.add(0, Arrays.asList("=============== CLASS.CSV ==============="));
-
-        writeCSVReport(ckRecords,dir.toString() + "/ck");
-    }
-
-    public static void writeCSVReport(List<List<String>> metrics, String filename) throws IOException {
-        File file = new File(filename + ".csv");
-
-        FileWriter fileWriter = new FileWriter(file);
-        CSVWriter writer = new CSVWriter(fileWriter);
-
-        for(List<String> metric:metrics){
-            String[] array = metric.toArray(String[]::new);
-            writer.writeNext(array);
-        }
-        writer.close();
-    }
+//    public static void writeCSVReport(List<List<String>> metrics, String filename) throws IOException {
+//        File file = new File(filename + ".csv");
+//
+//        FileWriter fileWriter = new FileWriter(file);
+//        CSVWriter writer = new CSVWriter(fileWriter);
+//
+//        for(List<String> metric:metrics){
+//            String[] array = metric.toArray(String[]::new);
+//            writer.writeNext(array);
+//        }
+//        writer.close();
+//    }
 
 
 //   Services accepting user input producing CK properties results.
