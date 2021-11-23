@@ -2,6 +2,7 @@ package com.theia.service;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import net.sourceforge.pmd.PMD;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -29,7 +30,6 @@ public class PMDService {
             List<List<String>> records = new ArrayList<List<String>>();
 
             File file = new File(path  + "/" + ruleset + ".csv");
-
             try {
                 BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
@@ -43,7 +43,6 @@ public class PMDService {
             }catch (IOException e){
                 System.out.println(e.getMessage());
             }
-
 
             try (CSVReader csvReader = new CSVReader(new FileReader(path + "/" + ruleset + ".csv"));) {
                 String[] values = null;

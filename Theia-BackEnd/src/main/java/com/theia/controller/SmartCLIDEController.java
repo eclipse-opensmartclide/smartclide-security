@@ -38,7 +38,7 @@ public class SmartCLIDEController {
     private VPService vpService;
 
 
-    private static String token = "3fa6958c8209021fa8e2d7f0f2cb899256494601";
+    private static String token = "b3563fa1b5f3a9b3b621c81d28aee2de12e8226f";
 
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
     @PostMapping("/analyze")
@@ -213,7 +213,7 @@ public class SmartCLIDEController {
     }
 
     @GetMapping("/cpp")
-    public ResponseEntity<Void> cppTesting(@RequestPart("url")String url) throws IOException {
+    public ResponseEntity<Void> cppTesting(@RequestPart("url")String url) throws IOException, InterruptedException {
         UUID id = UUID.randomUUID();
         File dir = this.theiaService.retrieveGithubCode(url, id);
         this.sonarqubeService.sonarCppAnalysis(id, token);

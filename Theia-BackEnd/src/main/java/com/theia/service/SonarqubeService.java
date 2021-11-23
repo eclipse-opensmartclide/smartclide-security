@@ -12,14 +12,12 @@ import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class SonarqubeService {
@@ -62,7 +60,7 @@ public class SonarqubeService {
     }
 
     public void sonarPythonAnalysis(UUID id, String token) throws InterruptedException, IOException {
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=\"3fa6958c8209021fa8e2d7f0f2cb899256494601\" -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id);
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=" + token + " -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id);
         builder.redirectErrorStream(true);
 
         //Execute the command
@@ -80,8 +78,35 @@ public class SonarqubeService {
         }
     }
 
-    public void sonarCppAnalysis(UUID id, String token){
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=\"3fa6958c8209021fa8e2d7f0f2cb899256494601\" -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id + " -Dsonar.cxx.file.suffixes=.cpp,.cxx,.cc,.c,.hxx,.hpp,.hh,.h");
+    public void sonarCppAnalysis(UUID id, String token) throws IOException, InterruptedException {
+        String output_dir = System.getProperty("user.dir") + "/upload/" + id;
+        System.out.println(output_dir);
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cppcheck --xml-version=2 \"" + output_dir  + "\" 2>" + output_dir  + "/report.xml");
+        Process process = builder.start();
+
+        List<String> lines = new ArrayList<>();
+        TimeUnit.SECONDS.sleep(10);
+
+        try {
+            File file = new File(output_dir + "/report.xml");
+            Scanner reader = new Scanner(file);
+            while(reader.hasNextLine()){
+                String line = reader.nextLine();
+                lines.add(line);
+            }
+        }catch (FileNotFoundException e){
+            System.out.println("An error occured.");
+            System.out.println(e);
+        }
+        System.out.println(lines);
+        if(!lines.contains("</errors>")){
+            FileWriter fileWriter = new FileWriter(output_dir + "/report.xml", true);
+            fileWriter.write("</errors>\n");
+            fileWriter.write("</results>\n");
+            fileWriter.close();
+        }
+
+        builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=" + token + " -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id + " -Dsonar.cxx.file.suffixes=.cpp,.cxx,.cc,.c,.hxx,.hpp,.hh,.h -Dsonar.cxx.cppcheck.reportPaths=" + output_dir + "/report.xml");
         builder.redirectErrorStream(true);
 
         try {
