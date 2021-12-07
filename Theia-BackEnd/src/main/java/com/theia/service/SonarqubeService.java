@@ -24,8 +24,8 @@ public class SonarqubeService {
 
     public void sonarMavenAnalysis(UUID id, String token) throws InterruptedException, IOException {
 
-       final Process p1 = Runtime.getRuntime().exec(new String[]{"mvn", "package", "-DskipTests"}, null, new File(System.getProperty("user.dir") + "/upload/" + id));
-//        final Process p1 = Runtime.getRuntime().exec("mvn -f "+ System.getProperty("user.dir") + "/upload/" + id.toString() + "/ package");
+//       final Process p1 = Runtime.getRuntime().exec(new String[]{"mvn", "package", "-DskipTests"}, null, new File(System.getProperty("user.dir") + "/upload/" + id));
+       final Process p1 = Runtime.getRuntime().exec("mvn -f "+ System.getProperty("HOME") + "/upload/" + id.toString() + "/ package");
 
         new Thread(new Runnable() {
             public void run() {
@@ -42,7 +42,7 @@ public class SonarqubeService {
         }).start();
         p1.waitFor();
 
-        final Process p = Runtime.getRuntime().exec("mvn -f " + System.getProperty("user.dir") + "/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
+        final Process p = Runtime.getRuntime().exec("mvn -f " + System.getProperty("HOME") + "/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
         new Thread(new Runnable() {
             public void run() {
                 BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -181,8 +181,6 @@ public class SonarqubeService {
             sonarMetrics.put(jsonObject.get("metric").toString(), Double.valueOf(jsonObject.get("value").toString()));
         }
 
-        System.out.println(sonarMetrics.keySet());
-        System.out.println(sonarMetrics.get("ncloc").toString());
         for(String key: sonarMetrics.keySet()){
             if(key.equals("ncloc")){
                 break;

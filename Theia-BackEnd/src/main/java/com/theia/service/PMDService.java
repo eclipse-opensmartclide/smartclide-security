@@ -26,7 +26,8 @@ public class PMDService {
         HashMap<String, Double> pmdValues = new HashMap<>();
         for(String ruleset: rulesets){
             pmdValues.put(ruleset, 0d);
-            Process process = Runtime.getRuntime().exec( System.getenv("HOME") +"/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + "/" + ruleset +".csv");
+            System.out.println(path);
+            Process process = Runtime.getRuntime().exec( System.getenv("HOME") + "/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + "/" + ruleset +".csv");
             List<List<String>> records = new ArrayList<List<String>>();
 
             File file = new File(path  + "/" + ruleset + ".csv");

@@ -16,7 +16,7 @@ public class TheiaService {
 
     public File retrieveGithubCode(String url, UUID id) throws IOException {
 
-        File dir = new File(System.getProperty("user.dir") + "/upload/" + id.toString());
+        File dir = new File(System.getProperty("HOME") + "/upload/" + id.toString());
 
         if(dir.exists()){
             FileUtils.deleteDirectory(dir);
@@ -26,7 +26,7 @@ public class TheiaService {
             System.out.println("Cloning " + url +" into " + id.toString());
             Git.cloneRepository()
                     .setURI(url)
-                    .setDirectory(Paths.get(System.getProperty("user.dir") + "/upload/" + id.toString()).toFile())
+                    .setDirectory(Paths.get(System.getProperty("HOME") + "/upload/" + id.toString()).toFile())
                     .call();
             System.out.println("Completed Cloning");
         } catch (GitAPIException e) {

@@ -37,7 +37,7 @@ public class SmartCLIDEController {
     @Autowired
     private VPService vpService;
 
-
+//Environmental variable, token to access Sonarqube.
     private static String token = "b3563fa1b5f3a9b3b621c81d28aee2de12e8226f";
 
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
@@ -96,8 +96,7 @@ public class SmartCLIDEController {
           analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
 //      Include Vulnerability Prediction Model.
-          analysis.put("Vulnerability_Prediction", this.vpService.vulnerabilityPrediction(url, "java"));
-          analysis.put("ProjectKey", new HashMap<String, Double>(){{put(id.toString(), 0d);}});
+
 
 //      Return the analysis map.
           return new ResponseEntity<>(analysis, HttpStatus.CREATED);
@@ -144,72 +143,6 @@ public class SmartCLIDEController {
 //      Return the analysis map.
           return new ResponseEntity<>(analysis, HttpStatus.CREATED);
       }
-    }
-
-    @PostMapping("/javaClient")
-    public ResponseEntity<LinkedHashMap<String, HashMap<String, Double>>> javaClient(@RequestPart("url") String url, @RequestPart("properties")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
-        UUID id = UUID.randomUUID();
-        properties.get("CK").put("loc", new ArrayList<>());
-        HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-        HashMap<String, Double> sonarPropertyScores = new HashMap<>();
-        Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
-
-        properties.put("Sonarqube", sonarProperties.get("metricKeys"));
-        properties.get("Sonarqube").putAll(sonarProperties.get("vulnerabilities"));
-
-
-//      Downloading the Github Project.
-        File dir = this.theiaService.retrieveGithubCode(url, id);
-        LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-//      Analyzing project with CK tool, alongside with the default values chosed for the CK tool.
-        HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(properties.get("CK").keySet()));
-        analysis.put("CK", ckValues);
-
-//      Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
-        HashMap<String, Double> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), new ArrayList<>(properties.get("PMD").keySet()));
-        analysis.put("PMD", pmdValues);
-
-        //SONARQUBE
-        this.sonarqubeService.sonarMavenAnalysis(id, token);
-        TimeUnit.SECONDS.sleep(15);
-//      Analyze Sonarqube Metrics Hardcoded.
-        sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
-
-//      Analyze Sonarqube Vulnerabilities Hardcoded.
-        sonarAnalysis.get("Sonarqube").putAll(this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("vulnerabilities").keySet(), id.toString()));
-        analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-
-        return new ResponseEntity<>(analysis, HttpStatus.OK);
-    }
-
-    @PostMapping("/pythonClient")
-    public ResponseEntity<LinkedHashMap<String, HashMap<String, Double>>> pythonClient(@RequestPart("url") String url, @RequestPart("properties")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties, @RequestPart("sonarqube")LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException {
-        UUID id = UUID.randomUUID();
-        HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-        HashMap<String, Double> sonarPropertyScores = new HashMap<>();
-        Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
-
-        properties.put("Sonarqube", sonarProperties.get("metricKeys"));
-        properties.get("Sonarqube").putAll(sonarProperties.get("vulnerabilities"));
-
-
-//      Downloading the Github Project.
-        File dir = this.theiaService.retrieveGithubCode(url, id);
-        LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
-
-        this.sonarqubeService.sonarPythonAnalysis(id, token);
-        TimeUnit.SECONDS.sleep(5);
-
-//      Analyze Sonarqube Metrics Hardcoded.
-        sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, id.toString()));
-
-//      Analyze Sonarqube Vulnerabilities Hardcoded.
-        sonarAnalysis.get("Sonarqube").putAll(this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("vulnerabilities").keySet(), id.toString()));
-
-        analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-
-        return new ResponseEntity<>(analysis, HttpStatus.OK);
     }
 
     @GetMapping("/cpp")
@@ -294,19 +227,10 @@ public class SmartCLIDEController {
 //                .body(new FileSystemResource(file));
 //    }
 
-    @GetMapping("/sonarIssues")
-    public ResponseEntity<List<SonarIssue>> test(@RequestParam("projectKey")String key){
-        return new ResponseEntity<>(this.sonarqubeService.sonarqubeIssues(key, token), HttpStatus.OK);
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test(){
+        return new ResponseEntity<>("Hello", HttpStatus.OK);
     }
 
-    @GetMapping("/dummy")
-    public ResponseEntity<Void> dummy(){
-        return new ResponseEntity(HttpStatus.OK);
-    }
-
-    @GetMapping("dir")
-    public ResponseEntity<String> dir(){
-        System.out.println();
-        return new ResponseEntity<>(System.getProperty("user.dir"), HttpStatus.OK);
-    }
 }
