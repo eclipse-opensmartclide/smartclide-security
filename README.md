@@ -48,9 +48,6 @@ FROM ubuntu
 
 RUN apt-get update && apt-get install default-jdk -y
 CMD ["export JAVA_HOME=`which java`"]
-
-RUN apt-get update && apt-get install cppcheck -y
-CMD ["cppcheck --version"]
 	
 WORKDIR /opt/app
 ENV HOME=/opt/app
@@ -63,7 +60,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 EXPOSE 8080
 ~~~
 
-As can be seen, the token produced is declared in the Dockerfile as an environmental parameter. In the file above, you can see that we are adding two CLI tools, the PMD and the CPPCHECK. Both tools are required in order to properly execute the analysis of the projects given. As a next step, you need to build the image with the proper docker command. The docker command must be executed in the same folder as the Dockerfile:
+As can be seen, the token produced is declared in the Dockerfile as an environmental parameter. In the file above, you can see that we are adding the PMD CLI tool. Both tools are required in order to properly execute the analysis of the projects given. As a next step, you need to build the image with the proper docker command. The docker command must be executed in the same folder as the Dockerfile:
 
 ~~~
 docker build -t ssas .
