@@ -27,6 +27,8 @@ $> docker run -d --name sonarqube \
 ~~~
 
 You can test that the instance is running properly by accessing your localhost:9000. You will be able to see the login screen of SonarQube:
+
+
 ![sonarqube_login](https://user-images.githubusercontent.com/39555236/152549766-8862b5c3-8e6f-497f-8212-8754cb48a955.PNG)
 
 After your successful login, you will have to create an access token in order to properly execute analyze commands through the service. The access token can be generated through your profile -> Security tab as bellow:
