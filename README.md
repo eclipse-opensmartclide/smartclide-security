@@ -1,12 +1,18 @@
 # Security module
 
-This project corresponds to the Security module of the SmartCLIDE platform. It integrates the Security-related Static Analysis (SSA) sub-component and the Vulnerability Assessment (VA) sub-component.
+The Security Component of the SmartCLIDE project consists of two sub-components, namely the Security-related Static Analysis (SSA) sub-component and the Vulnerability Assessment (VA) sub-component. The Security Component is in charge of evaluating the internal security of subservices and the overall workflow based on any code-level security issues and software vulnerabilities discovered in the source code.
 
-The Security Component of the SmartCLIDE project consists of two sub-components, namely the Security-related Static Analysis (SSA) sub-component and the Vulnerability Assessment (VA) sub-component. 
+The objective of this SSA sub-component is to detect possible security flaws in the source code of services, as well as to offer high-level security ratings. Based on any code-level security concerns found in the source code, the SSA sub-component will be responsible of assessing the internal security of subservices and the overall workflow. In fact, the goal of this sub-component is to detect potential security flaws in the source code of web services and to provide high-level security ratings.
 
-The Security Component is in charge of evaluating the internal security of subservices and the overall Workflow based on any code-level security issues and software vulnerabilities discovered in the source code. The objective of this SSA sub-component is to detect possible security flaws in the web services' source code, as well as to offer high-level security ratings. Based on any code-level security concerns found in the source code, the Security-related Static Analysis (SSA) sub-component will be responsible of assessing the internal security of subservices and the overall Workflow. In fact, the goal of this sub-component is to detect potential security flaws in the source code of web services and to provide high-level security ratings. 
+With respect to the VA sub-component, it is responsible of identifying software components with high possibility to be vulnerable. Actually, it predicts the vulnerable files of a project using a machine learning model.
 
-With respect to the VA sub-component, it is responsible of identifying software components with high possibility to be vulnerable. Actually, it predicts through a machine learning model, the vulnerable files of a project. Our method is built around a framework for performing security-related static analysis on a particular software application. This framework allows the execution of numerous static code analyzers for a specific software product, as well as the reporting the potential vulnerabilities found in its source code. The integration of various tools is critical for increasing the likelihood of discovering additional security flaws. Different technologies may identify various sorts of security problems and support various programming languages. The source code for each programming language is evaluated, and thorough reports containing mistakes and potential security vulnerabilities in the code are provided, depending on the tool and security standards examined. Using such tools, the developer may quickly detect security flaws in the software implementation, and also he/her will have a comprehensive analysis of his/her code and the mistakes that occur, receiving an "indicator" of how safe his/her product is.
+The Security component is built around a framework for performing security-related static analysis on a particular software application. This framework allows the execution of numerous static code analyzers for a specific software product, as well as the reporting of potential vulnerabilities found in its source code.
+
+The integration of various tools is critical for increasing the likelihood of discovering additional security flaws.
+
+Different technologies may identify various sorts of security problems and support various programming languages. The source code for each programming language is evaluated, and thorough reports containing mistakes and potential security vulnerabilities in the code are provided, depending on the tool and security standards examined. Using such tools, the developer can quickly detect security flaws in the software implementation.
+
+Additionally, the developer receives a comprehensive analysis of the source code and an 'indicator' of how safe it is.
 
 ## Getting started
 
