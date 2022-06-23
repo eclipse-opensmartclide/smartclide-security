@@ -1,4 +1,4 @@
-# security
+# Security module
 
 This project corresponds to the Security module of the SmartCLIDE platform. It integrates the Security-related Static Analysis (SSA) sub-component and the Vulnerability Assessment (VA) sub-component.
 
