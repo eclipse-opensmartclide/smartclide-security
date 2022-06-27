@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,13 +23,16 @@ public class PMDService {
     }
 
 //   Services accepting user input producing results.
-    public HashMap<String, Double> generateCustomPMDValues(Double loc, String path, List<String> rulesets) throws IOException {
+    public HashMap<String, Double> generateCustomPMDValues(Double loc, String path, List<String> rulesets) throws IOException, InterruptedException {
         HashMap<String, Double> pmdValues = new HashMap<>();
         for(String ruleset: rulesets){
             pmdValues.put(ruleset, 0d);
             System.out.println(path);
             Process process = Runtime.getRuntime().exec( System.getenv("HOME") + "/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + "/" + ruleset +".csv");
+            System.out.println("THIS    "+  System.getenv("HOME") + "/pmd-bin-6.30.0/bin/run.sh pmd -d " + path + " -R " + Path.of("").toAbsolutePath().toString() + "/Rulesets/" + ruleset +".xml -f csv -r " + path + "/" + ruleset +".csv");
+
             List<List<String>> records = new ArrayList<List<String>>();
+            TimeUnit.SECONDS.sleep(4);
 
             File file = new File(path  + "/" + ruleset + ".csv");
             try {
