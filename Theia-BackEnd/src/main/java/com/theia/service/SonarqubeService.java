@@ -1,9 +1,16 @@
 package com.theia.service;
 
 
+import com.google.gson.Gson;
 import com.theia.model.SonarIssue;
-import org.json.JSONArray;
-import org.json.JSONObject;
+//import org.json.JSONArray;
+//import org.json.JSONObject;
+
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class SonarqubeService {
 
 
-    public boolean projectExists(String id,String token){
+    public boolean projectExists(String id,String token) throws ParseException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -42,7 +49,10 @@ public class SonarqubeService {
                 String.class
         );
         String json = response.getBody();
-        JSONObject object = new JSONObject(json);
+//
+
+        JSONParser parser = new JSONParser();
+        JSONObject object = (JSONObject) parser.parse(json);
         Object check = object.get("components");
         if ( check.toString().equals("[]")){
 
@@ -55,10 +65,7 @@ public class SonarqubeService {
     }
     public void sonarMavenAnalysis(String sha,String name, String token) throws InterruptedException, IOException {
 
-//       final Process p1 = Runtime.getRuntime().exec(new String[]{"mvn", "package", "-DskipTests"}, null, new File(System.getProperty("user.dir") + "/upload/" + id));
-        //System.out.println("mvn -f " +"/home/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
-      // final Process p1 = Runtime.getRuntime().exec("mvn -f "+ System.getProperty("user.home") + "/upload/" + id.toString() + "/ package");
-        final Process p1 = Runtime.getRuntime().exec("mvn -f"+ "/home/upload/" + sha + "/ package");
+      final Process p1 = Runtime.getRuntime().exec("mvn -f"+ "/home/upload/" + sha + "/ package");
 
         new Thread(new Runnable() {
             public void run() {
@@ -74,11 +81,8 @@ public class SonarqubeService {
             }
         }).start();
         p1.waitFor();
-        //System.out.println("mvn -f " + System.getProperty("user.home") + "homee/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
 
-//        final Process p = Runtime.getRuntime().exec("mvn -f " + System.getProperty("HOME") + "/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
-       //final Process p = Runtime.getRuntime().exec("mvn -f " + System.getProperty("user.home") + "/upload/" + id.toString() + "/  sonar:sonar -Dsonar.projectKey=" + id.toString() + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
-        final Process p = Runtime.getRuntime().exec("mvn -f " + "/home/upload/" +sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
+         final Process p = Runtime.getRuntime().exec("mvn -f " + "/home/upload/" +sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
 
         new Thread(new Runnable() {
             public void run() {
@@ -159,15 +163,11 @@ public class SonarqubeService {
 
     public void sonarCppAnalysis(String sha,String name, String token) throws IOException, InterruptedException {
 
-        String output_dir = System.getProperty("user.dir") + "/upload/" + sha;
-        //System.out.println(output_dir);
-       // ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cppcheck --xml-version=2 \"" + output_dir  + "\" 2>" + output_dir  + "/build/report.xml");
         ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+"&&mkdir build"+"&&cppcheck --enable=all --inconclusive --xml --force . 2>build/report.xml");
         builder.redirectErrorStream(true);
 
 
 
-       // Process process = builder.start();
 
         try{
             Process p = builder.start();
@@ -190,17 +190,12 @@ public class SonarqubeService {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(token, "");
         HttpEntity request = new HttpEntity(headers);
-        //System.out.println("http://localhost:9000/api/projects/create&name=" + name + "&project="+id);
 
         ResponseEntity<String> response1 = restTemplate.exchange("http://localhost:9000/api/projects/create?name=" + name + "&project="+name,
                 HttpMethod.POST,
                 request,
                 String.class
         );
-        //System.out.println(response1);
-
-        //System.out.println("http://localhost:9000/api/hotspots/search?projectKey=" + name + "&qualityProfile=Sonar myway&language=cxx");
-
 
 
 
@@ -209,14 +204,10 @@ public class SonarqubeService {
                 request,
                 String.class
         );
-        //System.out.println(response2);
 
 
 
-        //builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=" + token + " -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id + " -Dsonar.cxx.file.suffixes=.cpp,.cxx,.cc,.c,.hxx,.hpp,.hh,.h -Dsonar.cxx.cppcheck.reportPaths=" + output_dir + "/report.xml");
-        //builder = new ProcessBuilder("/bin/bash", "-c", "docker run --rm --network=host -e SONAR_HOST_URL=\"http://localhost:9000\" -e SONAR_LOGIN=" + token + " -v \"" + System.getProperty("user.dir") + "/upload/" + id + ":/usr/src/\" sonarsource/sonar-scanner-cli -Dsonar.projectKey=" + id + " -Dsonar.cxx.file.suffixes=.cpp,.cxx,.cc,.c,.hxx,.hpp,.hh,.h -Dsonar.cxx.cppcheck.reportPaths=" + output_dir + "/report.xml");
-        //System.out.println("cd /home/upload/"+id.toString()+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+id.toString() +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token + "Dsonar.cxx.cppcheck.reportPaths=" +  "build/report.xml");
-        ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token + " -Dsonar.cxx.cppcheck.reportPaths=" +  "build/report.xml");
+             ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token + " -Dsonar.cxx.cppcheck.reportPaths=" +  "build/report.xml");
 
 
 
@@ -243,7 +234,7 @@ public class SonarqubeService {
 
 
     
-    public HashMap<String, Double> sonarqubeCustomVulnerabilities(String token, Set<String> vulnerabilities, String id,Double linesOfCode){
+    public HashMap<String, Double> sonarqubeCustomVulnerabilities(String token, Set<String> vulnerabilities, String id,Double linesOfCode) throws ParseException {
         HashMap<String, Double> sonarqubeVulnerabilities = new HashMap<>();
 
 //      Harcoded list of Vulnerabilities we want to search.
@@ -260,17 +251,23 @@ public class SonarqubeService {
                     request,
                     String.class
             );
-            //System.out.println(response);
+
+
             String json = response.getBody();
-            JSONObject object = new JSONObject(json);
+
+
+            JSONParser parser = new JSONParser();
+            JSONObject object = (JSONObject) parser.parse(json);
+
             object = (JSONObject) object.get("paging");
-            sonarqubeVulnerabilities.put(vul, ((Integer)object.get("total") * 1000.0/ linesOfCode));
+            long l = (long) object.get("total");
+            sonarqubeVulnerabilities.put(vul, (l * 1000.0/ linesOfCode));
         }
 
         return sonarqubeVulnerabilities;
     }
     
-    public HashMap<String, Double> sonarqubeCustomMetrics(String token, Set<String> metrics, String id){
+    public HashMap<String, Double> sonarqubeCustomMetrics(String token, Set<String> metrics, String id) throws ParseException {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -292,12 +289,16 @@ public class SonarqubeService {
        // System.out.println(response);
         // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
         String json = response.getBody();
-        JSONObject object = new JSONObject(json);
-        object = (JSONObject) object.get("component");
-        JSONArray array = new JSONArray(object.get("measures").toString());
+//        JSONObject object = new JSONObject(json);
 
-        for(int i = 0; i < array.length(); i++){
-            JSONObject jsonObject = array.getJSONObject(i);
+        JSONParser parser = new JSONParser();
+        JSONObject object = (JSONObject) parser.parse(json);
+        object = (JSONObject) object.get("component");
+       // JSONArray slideContent = (JSONArray) object.get("presentationSlides");
+        JSONArray array =  (JSONArray)object.get("measures");
+
+        for(int i = 0; i < array.size(); i++){
+            JSONObject jsonObject = (JSONObject) array.get(i);
             sonarMetrics.put(jsonObject.get("metric").toString(), Double.valueOf(jsonObject.get("value").toString()));
         }
 
@@ -312,7 +313,7 @@ public class SonarqubeService {
         return sonarMetrics;
     }
 
-    public HashMap<String, Double> sonarqubeCustomCPP(String token, Double linesOfCode, String id, List<String> CppRules) throws ParserConfigurationException, IOException, SAXException {
+    public HashMap<String, Double> sonarqubeCustomCPP(String token, Double linesOfCode, String id, List<String> CppRules) throws ParserConfigurationException, IOException, SAXException, ParseException {
 
 
 
@@ -424,30 +425,33 @@ public class SonarqubeService {
                 request,
                 String.class
         );
-        //System.out.println("http://localhost:9000/api/issues/search?componentKeys" + id + "&tags=cppcheck");
 
-        // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
         String json = response.getBody();
 
-        JSONObject jsonData = new JSONObject(json);
+//        JSONObject jsonData = new JSONObject(json);
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonData = (JSONObject) parser.parse(json);
 
         String cppRule = "";
 
         // get locations array from the JSON Object and store it into JSONArray
-        JSONArray jsonArray = jsonData.getJSONArray("issues");
+
+        JSONArray jsonArray = (JSONArray) jsonData.get("issues");
         // Iterate jsonArray using for loop
 
-        JSONObject object = new JSONObject(json);
-        object = (JSONObject) object.get("paging");
+//        JSONObject object = new JSONObject(json);
+//
+//        object = (JSONObject) object.get("paging");
 
 
         //iterating cpp issues
 
         HashMap<String,Integer> Counter = new HashMap<String,Integer>();
-        for (int i = 0; i < jsonArray.length(); i++) {
+        for (int i = 0; i < jsonArray.size(); i++) {
 
             // store each object in JSONObject
-            JSONObject explrObject = jsonArray.getJSONObject(i);
+            JSONObject explrObject = (JSONObject) jsonArray.get(i);
 
             // get field value from JSONObject using get() method
             cppRule = explrObject.get("rule").toString();
@@ -484,21 +488,8 @@ public class SonarqubeService {
                 sonarqubeCppIssues.put(next,0.0);
 
             }
-            //System.out.println(crunchifyIterator.next());
         }
-//
-//        for (Map.Entry<String, Integer> set :
-//                Counter.entrySet()) {
-//           if(CppRules.contains(set.getKey())){
-//               sonarqubeCppIssues.put(set.getKey(),set.getValue()* 1000.0/ linesOfCode);
-//
-//           }
-//           else {
-//               sonarqubeCppIssues.put(set.getKey(),0.0);
-//
-//           }
-//
-//        }
+
 
 
 
@@ -508,7 +499,7 @@ public class SonarqubeService {
 
 
     // Returns the lines of code of a project.
-    public Double linesOfCode(String token, String id) {
+    public Double linesOfCode(String token, String id) throws ParseException {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -525,19 +516,20 @@ public class SonarqubeService {
 
         // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
         String json = response.getBody();
-        JSONObject object = new JSONObject(json);
+        JSONParser parser = new JSONParser();
+        JSONObject object = (JSONObject) parser.parse(json);
         object = (JSONObject) object.get("component");
-        JSONArray array = new JSONArray(object.get("measures").toString());
+        JSONArray array = (JSONArray)object.get("measures");
 
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject jsonObject = array.getJSONObject(i);
+        for (int i = 0; i < array.size(); i++) {
+            JSONObject jsonObject = (JSONObject) array.get(i);
             sonarMetrics.put(jsonObject.get("metric").toString(), Double.valueOf(jsonObject.get("value").toString()));
         }
 
         return sonarMetrics.get("ncloc");
     }
 
-    public List<SonarIssue> sonarqubeIssues(String key, String token){
+    public List<SonarIssue> sonarqubeIssues(String key, String token) throws ParseException {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -554,9 +546,10 @@ public class SonarqubeService {
 
         // Getting metrics for Complexity, Maintability, Reliability and Lines of Code Hardcoded.
         String json = response.getBody();
-        JSONObject object = new JSONObject(json);
-        JSONArray array = new JSONArray(object.get("issues").toString());
-        for(int i = 0; i < array.length(); i++){
+        JSONParser parser = new JSONParser();
+        JSONObject object = (JSONObject) parser.parse(json);
+        JSONArray array = (JSONArray)(object.get("issues"));
+        for(int i = 0; i < array.size(); i++){
             JSONObject input = (JSONObject) array.get(i);
             if(input.keySet().contains("line")){
                 SonarIssue sonarIssue = new SonarIssue(input.get("severity").toString(), input.get("line").toString(), input.get("message").toString(), input.get("component").toString().replace(key + ":", ""));

@@ -3,6 +3,7 @@ package com.theia.controller;
 
 import com.theia.service.*;
 import org.apache.commons.io.FileUtils;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +50,7 @@ public class SmartCLIDEController {
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
     @PostMapping("/analyze")
 
-      public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException {
+      public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
 
         UUID id = UUID.randomUUID();
 
