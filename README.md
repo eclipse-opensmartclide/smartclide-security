@@ -1,3 +1,12 @@
+<!--
+   Copyright (C) 2021-2022 CERTH
+   
+   This program and the accompanying materials are made
+   available under the terms of the Eclipse Public License 2.0
+   which is available at https://www.eclipse.org/legal/epl-2.0/
+   
+   SPDX-License-Identifier: EPL-2.0
+-->
 # smartclide-security
 The Security Component of the SmartCLIDE project consists of two sub-components, namely the Security-related Static Analysis (SSA) sub-component and the Vulnerability Assessment (VA) sub-component. The Security Component is in charge of evaluating the internal security of subservices and the overall workflow based on any code-level security issues and software vulnerabilities discovered in the source code. 
 
