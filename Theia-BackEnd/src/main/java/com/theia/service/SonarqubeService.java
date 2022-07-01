@@ -30,6 +30,8 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class SonarqubeService {
@@ -63,9 +65,80 @@ public class SonarqubeService {
         }
 
     }
-    public void sonarMavenAnalysis(String sha,String name, String token) throws InterruptedException, IOException {
 
-      final Process p1 = Runtime.getRuntime().exec("mvn -f"+ "/home/upload/" + sha + "/ package");
+    public boolean taskRunning(String taskId,String token) throws ParseException {
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(token, "");
+        HttpEntity request = new HttpEntity(headers);
+        // System.out.println("http://localhost:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul);
+        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/ce/task?id=" + taskId,
+                HttpMethod.GET,
+                request,
+                String.class
+        );
+
+
+        String json = response.getBody();
+
+
+        JSONParser parser = new JSONParser();
+        JSONObject object = (JSONObject) parser.parse(json);
+
+        object = (JSONObject) object.get("task");
+        if(object.get("status").toString().equals("SUCCESS")){
+            return true;
+        }
+        else{
+            System.out.println(object.get("status").toString());
+
+            return false;
+        }
+    }
+
+    public void openTaskFile(String token,String sha) throws IOException, ParseException, InterruptedException {
+        //Check if Task is complete
+        File file = new File(
+                "/home/upload/" + sha+"/report/report-task.txt");
+
+        BufferedReader br
+                = new BufferedReader(new FileReader(file));
+
+        String st;
+        Pattern pattern = Pattern.compile("(ceTaskId=)(.*)", Pattern.CASE_INSENSITIVE);
+
+        String taskId = "";
+        // Condition holds true till
+        // there is character in a string
+        while ((st = br.readLine()) != null){
+           // System.out.println(st);
+            Matcher matcher = pattern.matcher(st);
+            boolean matchFound = matcher.find();
+            if(matchFound) {
+                //System.out.println("Match found");
+                taskId = matcher.group(2);
+
+                while (!taskRunning(taskId,token)){
+
+                    System.out.println("Waited 3s");
+                    TimeUnit.SECONDS.sleep(3);
+
+                }
+
+            } else {
+                //System.out.println("Match not found");
+            }
+
+        }
+        // Print the string
+
+
+
+    }
+    public void sonarMavenAnalysis(String sha,String name, String token) throws InterruptedException, IOException, ParseException {
+
+        final Process p1 = Runtime.getRuntime().exec("mvn -f" + "/home/upload/" + sha + "/ package");
 
         new Thread(new Runnable() {
             public void run() {
@@ -82,7 +155,9 @@ public class SonarqubeService {
         }).start();
         p1.waitFor();
 
-         final Process p = Runtime.getRuntime().exec("mvn -f " + "/home/upload/" +sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token);
+        File dir = new File("/home/upload/" + sha+"/report");
+
+        final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha+"/report");
 
         new Thread(new Runnable() {
             public void run() {
@@ -98,6 +173,11 @@ public class SonarqubeService {
             }
         }).start();
         p.waitFor();
+
+        openTaskFile(token,sha);
+
+
+
     }
 
 //    public void sonarPythonAnalysis(UUID id,String name, String token) throws InterruptedException, IOException {
@@ -136,10 +216,12 @@ public class SonarqubeService {
 
 
     //}
-    public void sonarScannerAnalysis(String sha,String name, String token) throws InterruptedException, IOException {
+    public void sonarScannerAnalysis(String sha,String name, String token) throws InterruptedException, IOException, ParseException {
 
         //System.out.println("sonar-scanner " +   "  -Dsonar.projectKey="+id.toString() +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token);
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name+"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token);
+
+
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name+"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token+ " -Dsonar.working.directory=/home/upload/"+sha+"/report/");
         builder.redirectErrorStream(true);
 
 
@@ -159,9 +241,12 @@ public class SonarqubeService {
             System.out.println(e.getMessage());
         }
 
+        //Check if running and wait
+        openTaskFile(token,sha);
+
     }
 
-    public void sonarCppAnalysis(String sha,String name, String token) throws IOException, InterruptedException {
+    public void sonarCppAnalysis(String sha,String name, String token) throws IOException, InterruptedException, ParseException {
 
         ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+"&&mkdir build"+"&&cppcheck --enable=all --inconclusive --xml --force . 2>build/report.xml");
         builder.redirectErrorStream(true);
@@ -182,8 +267,11 @@ public class SonarqubeService {
         }catch(IOException e){
             System.out.println(e.getMessage());
         }
+
+
+
         List<String> lines = new ArrayList<>();
-        TimeUnit.SECONDS.sleep(10);
+        //TimeUnit.SECONDS.sleep(10);
 
 
         RestTemplate restTemplate = new RestTemplate();
@@ -207,12 +295,12 @@ public class SonarqubeService {
 
 
 
-             ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token + " -Dsonar.cxx.cppcheck.reportPaths=" +  "build/report.xml");
+             ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/"+sha+ "&&sonar-scanner " +   "  -Dsonar.projectKey="+name +"  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login="+token + " -Dsonar.cxx.cppcheck.reportPaths=" +  "build/report.xml"+ " -Dsonar.working.directory=/home/upload/" + sha+"/report");
 
 
 
 
-        TimeUnit.SECONDS.sleep(10);
+        //TimeUnit.SECONDS.sleep(10);
 
 
         builder2.redirectErrorStream(true);
@@ -229,6 +317,9 @@ public class SonarqubeService {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+
+        openTaskFile(token,sha);
+
     }
 
 

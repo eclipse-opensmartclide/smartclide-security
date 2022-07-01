@@ -76,7 +76,7 @@ public class TheiaService {
 
             try {
 
-               // System.out.println("Cloning " + url + " into " + id.toString());
+               System.out.println("Cloning " + url + " into " + id.toString());
                 Git some = Git.cloneRepository()
                         .setURI(url)
                         .setDirectory(Paths.get("/home/upload/" + name).toFile())
@@ -91,7 +91,7 @@ public class TheiaService {
                 hashCode = headhash.getObjectId().getName();
 
 
-               // System.out.println("\n \n Ref of HEAD2          : " + headhash + ": " + headhash.getName() + " - " + headhash.getObjectId().getName());
+               System.out.println("Hash " + hashCode);
 
                 //System.out.println(some.getRepository().getBranch());
 
@@ -100,7 +100,7 @@ public class TheiaService {
                 System.out.println("Exception occurred while cloning repo");
                 e.printStackTrace();
             }
-            return hashCode;
+            return name;
         }
     }
 }

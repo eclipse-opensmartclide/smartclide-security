@@ -1,13 +1,13 @@
-package com.theia;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class TheiaBackEndApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
-}
+//package com.theia;
+//
+//import org.junit.jupiter.api.Test;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class TheiaBackEndApplicationTests {
+//
+//	@Test
+//	void contextLoads() {
+//	}
+//
+//}

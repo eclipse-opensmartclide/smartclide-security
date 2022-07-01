@@ -14,6 +14,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -74,7 +77,15 @@ public class SmartCLIDEController {
             Matcher matcher = pattern.matcher(url);
             String name= "";
 
+            // Throws exception on failure
+//            Files.createDirectory(Paths.get("/home/upload/"+branchSHA),
+//                    PosixFilePermissions.asFileAttribute(
+//                            PosixFilePermissions.fromString("rwxr-x---")
+//                    ));
             File dir = new File("/home/upload/" + branchSHA);
+
+            Files.setPosixFilePermissions(Paths.get("/home/upload/"+branchSHA), PosixFilePermissions.fromString("rwxr-x---"));
+
 
             if (matcher.find())
             {
@@ -87,6 +98,7 @@ public class SmartCLIDEController {
 //      Analyzing project with CK tool, alongside with the default values chosed for the CK tool
 
           ArrayList <String> stone = new ArrayList<>(sonarProperties.get("CK").keySet());
+
           HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(sonarProperties.get("CK").keySet()));
           analysis.put("CK", ckValues);
 
@@ -99,7 +111,7 @@ public class SmartCLIDEController {
 
             if(!sonarqubeService.projectExists(name,token)) {
                 this.sonarqubeService.sonarMavenAnalysis(branchSHA,name, token);
-                TimeUnit.SECONDS.sleep(30);
+                //TimeUnit.SECONDS.sleep(0);
 
             }
 
@@ -171,7 +183,7 @@ public class SmartCLIDEController {
 
             if(!sonarqubeService.projectExists(name,token)) {
                 this.sonarqubeService.sonarScannerAnalysis(branchSHA,name, token);
-                TimeUnit.SECONDS.sleep(30);
+                //TimeUnit.SECONDS.sleep(30);
 
             }
                 LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
@@ -234,7 +246,7 @@ public class SmartCLIDEController {
 
             if(!sonarqubeService.projectExists(name,token)) {
                 this.sonarqubeService.sonarScannerAnalysis(branchSHA,name, token);
-                TimeUnit.SECONDS.sleep(20);
+                //TimeUnit.SECONDS.sleep(20);
 
             }
 
