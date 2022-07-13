@@ -1,0 +1,370 @@
+<?xml version="1.0"?>
+<rules-pmd>
+<ruleset name="android">
+	<rule>CallSuperFirst</rule>
+	<rule>CallSuperLast</rule>
+	<rule>DoNotHardCodeSDCard</rule>
+</ruleset>
+
+<ruleset name="basic">
+	<rule>JumbledIncrementer</rule>
+	<rule>ForLoopShouldBeWhileLoop</rule>
+	<rule>OverrideBothEqualsAndHashcode</rule>
+	<rule>DoubleCheckedLocking</rule>	
+	<rule>ReturnFromFinallyBlock</rule>
+	<rule>UnconditionalIfStatement</rule>
+	<rule>BooleanInstantiation</rule>
+	<rule>CollapsibleIfStatements</rule>	
+	<rule>ClassCastExceptionWithToArray</rule>
+	<rule>AvoidDecimalLiteralsInBigDecimalConstructor</rule>
+	<rule>MisplacedNullCheck</rule>
+	<rule>AvoidThreadGroup</rule>
+	<rule>BrokenNullCheck</rule>
+	<rule>BigIntegerInstantiation</rule>
+	<rule>AvoidUsingOctalValues</rule>
+	<rule>AvoidUsingHardCodedIP</rule>	
+	<rule>CheckResultSet</rule>
+	<rule>AvoidMultipleUnaryOperators</rule>
+	<rule>ExtendsObject</rule>
+	<rule>CheckSkipResult</rule>	
+	<rule>AvoidBranchingStatementAsLastInLoop</rule>
+	<rule>DontCallThreadRun</rule>
+	<rule>DontUseFloatTypeForLoopIndices</rule>
+	<rule>SimplifiedTernary</rule>
+</ruleset>
+
+<ruleset name="braces">
+	<rule>IfStmtsMustUseBraces</rule>
+	<rule>WhileLoopsMustUseBraces</rule>
+	<rule>IfElseStmtsMustUseBraces</rule>
+	<rule>ForLoopsMustUseBraces</rule>
+</ruleset>
+
+<ruleset name="clone">
+	<rule>ProperCloneImplementation</rule>
+	<rule>CloneThrowsCloneNotSupportedException</rule>
+	<rule>CloneMethodMustImplementCloneable</rule>
+	<rule>CloneMethodReturnTypeMustMatchClassName</rule>
+	<rule>CloneMethodMustBePublic</rule>
+</ruleset>
+
+<ruleset name="codesize">
+	<rule>NPathComplexity</rule>
+	<rule>ExcessiveMethodLength</rule>
+	<rule>ExcessiveParameterList</rule>
+	<rule>ExcessiveClassLength</rule>
+	
+	<rule>CyclomaticComplexity</rule>
+	<rule>StdCyclomaticComplexity</rule>
+	<rule>ModifiedCyclomaticComplexity</rule>
+	<rule>ExcessivePublicCount</rule>
+	
+	<rule>TooManyFields</rule>
+	<rule>NcssMethodCount</rule>
+	<rule>NcssTypeCount</rule>
+	<rule>NcssConstructorCount</rule>
+	<rule>TooManyMethods</rule>
+</ruleset>
+
+<ruleset name="comments">
+	<rule>CommentRequired</rule>
+	<rule>CommentSize</rule>
+	<rule>CommentContent</rule>
+	<rule>CommentDefaultAccessModifier</rule>
+</ruleset>
+
+<ruleset name="controversial">
+	<rule>UnnecessaryConstructor</rule>
+	<rule>NullAssignment</rule>
+	<rule>OnlyOneReturn</rule>
+	<rule>AssignmentInOperand</rule>
+	<rule>AtLeastOneConstructor</rule>
+	<rule>DontImportSun</rule>
+	<rule>SuspiciousOctalEscape</rule>
+	<rule>CallSuperInConstructor</rule>
+	<rule>UnnecessaryParentheses</rule>
+	<rule>DefaultPackage</rule>
+	<rule>DataflowAnomalyAnalysis</rule>
+	<rule>AvoidFinalLocalVariable</rule>
+	<rule>AvoidUsingShortType</rule>
+	<rule>AvoidUsingVolatile</rule>
+	<rule>AvoidUsingNativeCode</rule>
+	<rule>AvoidAccessibilityAlteration</rule>
+	<rule>DoNotCallGarbageCollectionExplicitly</rule>
+	<rule>OneDeclarationPerLine</rule>
+	<rule>AvoidPrefixingMethodParameters</rule>
+	<rule>AvoidLiteralsInIfCondition</rule>	
+	<rule>UseObjectForClearerAPI</rule>
+	<rule>UseConcurrentHashMap</rule>
+</ruleset>
+
+<ruleset name="coupling">
+	<rule>CouplingBetweenObjects</rule>
+	<rule>ExcessiveImports</rule>
+	<rule>LooseCoupling</rule>
+	<rule>LoosePackageCoupling</rule>
+	<rule>LawOfDemeter</rule>
+</ruleset>
+
+<ruleset name="design">
+	<rule>UseUtilityClass</rule>
+	<rule>SimplifyBooleanReturns</rule>
+	<rule>SimplifyBooleanExpressions</rule>
+	<rule>SwitchStmtsShouldHaveDefault</rule>
+	<rule>AvoidDeeplyNestedIfStmts</rule>
+	<rule>AvoidReassigningParameters</rule>
+	<rule>SwitchDensity</rule>
+	<rule>ConstructorCallsOverridableMethod</rule>
+	<rule>AccessorClassGeneration</rule>
+	<rule>FinalFieldCouldBeStatic</rule>
+	<rule>CloseResource</rule>
+	<rule>NonStaticInitializer</rule>
+	<rule>DefaultLabelNotLastInSwitchStmt</rule>
+	<rule>NonCaseLabelInSwitchStatement</rule>
+	<rule>OptimizableToArrayCall</rule>
+	<rule>BadComparison</rule>
+	<rule>EqualsNull</rule>
+	<rule>ConfusingTernary</rule>
+	<rule>InstantiationToGetClass</rule>
+	<rule>IdempotentOperations</rule>
+	<rule>SimpleDateFormatNeedsLocale</rule>
+	<rule>ImmutableField</rule>
+	<rule>UseLocaleWithCaseConversions</rule>
+	<rule>AvoidProtectedFieldInFinalClass</rule>
+	<rule>AssignmentToNonFinalStatic</rule>
+	<rule>MissingStaticMethodInNonInstantiatableClass</rule>
+	<rule>AvoidSynchronizedAtMethodLevel</rule>
+	<rule>MissingBreakInSwitch</rule>
+	<rule>UseNotifyAllInsteadOfNotify</rule>
+	<rule>AvoidInstanceofChecksInCatchClause</rule>
+	<rule>AbstractClassWithoutAbstractMethod</rule>
+	<rule>SimplifyConditional</rule>
+	<rule>CompareObjectsWithEquals</rule>
+	<rule>PositionLiteralsFirstInComparisons</rule>
+	<rule>PositionLiteralsFirstInCaseInsensitiveComparisons</rule>
+	<rule>UnnecessaryLocalBeforeReturn</rule>
+	<rule>NonThreadSafeSingleton</rule>
+	<rule>SingleMethodSingleton</rule>
+	<rule>SingletonClassReturningNewInstance</rule>
+	<rule>UncommentedEmptyMethodBody</rule>
+	<rule>UncommentedEmptyConstructor</rule>
+	<rule>AvoidConstantsInterface</rule>
+	<rule>UnsynchronizedStaticDateFormatter</rule>
+	<rule>PreserveStackTrace</rule>
+	<rule>UseCollectionIsEmpty</rule>		
+	<rule>ClassWithOnlyPrivateConstructorsShouldBeFinal</rule>
+	<rule>EmptyMethodInAbstractClassShouldBeAbstract</rule>
+	<rule>SingularField</rule>
+	<rule>ReturnEmptyArrayRatherThanNull</rule>
+	<rule>AbstractClassWithoutAnyMethod</rule>		
+	<rule>TooFewBranchesForASwitchStatement</rule>
+	<rule>LogicInversion</rule>
+	<rule>UseVarargs</rule>
+	<rule>FieldDeclarationsShouldBeAtStartOfClass</rule>
+	<rule>GodClass</rule>	
+	<rule>AvoidProtectedMethodInFinalClassNotExtending</rule>	
+</ruleset>
+
+<ruleset name="empty">
+	<rule>EmptyCatchBlock</rule>
+	<rule>EmptyIfStmt</rule>
+	<rule>EmptyWhileStmt</rule>
+	<rule>EmptyTryBlock</rule>
+	<rule>EmptyFinallyBlock</rule>
+	<rule>EmptySwitchStatements</rule>
+	<rule>EmptySynchronizedBlock</rule>
+	<rule>EmptyStatementNotInLoop</rule>
+	<rule>EmptyInitializer</rule>
+	<rule>EmptyStatementBlock</rule>
+	<rule>EmptyStaticInitializer</rule>
+</ruleset>
+
+<ruleset name="finalizers">
+	<rule>EmptyFinalizer</rule>
+	<rule>FinalizeOnlyCallsSuperFinalize</rule>
+	<rule>FinalizeOverloaded</rule>
+	<rule>FinalizeDoesNotCallSuperFinalize</rule>
+	<rule>FinalizeShouldBeProtected</rule>
+	<rule>AvoidCallingFinalize</rule>
+</ruleset>
+
+
+<ruleset name="imports">
+	<rule>DuplicateImports</rule>
+	<rule>DontImportJavaLang</rule>
+	<rule>UnusedImports</rule>
+	<rule>ImportFromSamePackage</rule>
+	<rule>TooManyStaticImports</rule>
+	<rule>UnnecessaryFullyQualifiedName</rule>
+</ruleset>
+
+<ruleset name="j2ee">
+	<rule>UseProperClassLoader</rule>
+	<rule>MDBAndSessionBeanNamingConvention</rule>
+	<rule>RemoteSessionInterfaceNamingConvention</rule>
+	<rule>LocalInterfaceSessionNamingConvention</rule>
+	<rule>LocalHomeNamingConvention</rule>
+	<rule>RemoteInterfaceNamingConvention</rule>
+	<rule>DoNotCallSystemExit</rule>
+	<rule>StaticEJBFieldShouldBeFinal</rule>
+	<rule>DoNotUseThreads</rule>
+</ruleset>
+
+<ruleset name="javabeans">
+	<rule>BeanMembersShouldSerialize</rule>
+	<rule>MissingSerialVersionUID</rule>
+</ruleset>
+
+<ruleset name="junit">
+	<rule>JUnitStaticSuite</rule>
+	<rule>JUnitSpelling</rule>
+	<rule>JUnitAssertionsShouldIncludeMessage</rule>
+	<rule>JUnitTestsShouldIncludeAssert</rule>
+	<rule>TestClassWithoutTestCases</rule>
+	<rule>UnnecessaryBooleanAssertion</rule>
+	<rule>UseAssertEqualsInsteadOfAssertTrue</rule>
+	<rule>UseAssertSameInsteadOfAssertTrue</rule>
+	<rule>UseAssertNullInsteadOfAssertTrue</rule>
+	<rule>SimplifyBooleanAssertion</rule>
+	<rule>JUnitTestContainsTooManyAsserts</rule>
+	<rule>UseAssertTrueInsteadOfAssertEquals</rule>
+</ruleset>
+
+
+<ruleset name="logging-jakarta-commons">
+	<rule>UseCorrectExceptionLogging</rule>
+	<rule>ProperLogger</rule>
+	<rule>GuardDebugLogging</rule>
+	<rule>GuardLogStatement</rule>
+</ruleset>
+
+<ruleset name="logging-java">
+	<rule>MoreThanOneLogger</rule>
+	<rule>LoggerIsNotStaticFinal</rule>
+	<rule>SystemPrintln</rule>
+	<rule>AvoidPrintStackTrace</rule>
+	<rule>GuardLogStatementJavaUtil</rule>
+</ruleset>
+
+<ruleset name="migrating">
+	<rule>ReplaceVectorWithList</rule>
+	<rule>ReplaceHashtableWithMap</rule>
+	<rule>ReplaceEnumerationWithIterator</rule>
+	<rule>AvoidEnumAsIdentifier</rule>
+	<rule>AvoidAssertAsIdentifier</rule>
+	<rule>IntegerInstantiation</rule>
+	<rule>ByteInstantiation</rule>
+	<rule>ShortInstantiation</rule>
+	<rule>LongInstantiation</rule>
+	<rule>JUnit4TestShouldUseBeforeAnnotation</rule>
+	<rule>JUnit4TestShouldUseAfterAnnotation</rule>
+	<rule>JUnit4TestShouldUseTestAnnotation</rule>
+	<rule>JUnit4SuitesShouldUseSuiteAnnotation</rule>
+	<rule>JUnitUseExpected</rule>
+</ruleset>
+
+<ruleset name="naming">
+	<rule>ShortVariable</rule>
+	<rule>LongVariable</rule>
+	<rule>ShortMethodName</rule>
+	<rule>VariableNamingConventions</rule>
+	<rule>MethodNamingConventions</rule>
+	<rule>ClassNamingConventions</rule>
+	<rule>AbstractNaming</rule>
+	<rule>AvoidDollarSigns</rule>
+	<rule>MethodWithSameNameAsEnclosingClass</rule>
+	<rule>SuspiciousHashcodeMethodName</rule>
+	<rule>SuspiciousConstantFieldName</rule>
+	<rule>SuspiciousEqualsMethodName</rule>
+	<rule>AvoidFieldNameMatchingTypeName</rule>
+	<rule>AvoidFieldNameMatchingMethodName</rule>
+	<rule>NoPackage</rule>
+	<rule>PackageCase</rule>
+	<rule>MisleadingVariableName</rule>
+	<rule>BooleanGetMethodName</rule>
+	<rule>ShortClassName</rule>
+	<rule>GenericsNaming</rule>
+</ruleset>
+
+<ruleset name="optimizations">
+	<rule>LocalVariableCouldBeFinal</rule>
+	<rule>MethodArgumentCouldBeFinal</rule>
+	<rule>AvoidInstantiatingObjectsInLoops</rule>
+	<rule>UseArrayListInsteadOfVector</rule>
+	<rule>SimplifyStartsWith</rule>
+	<rule>UseStringBufferForStringAppends</rule>
+	<rule>UseArraysAsList</rule>
+	<rule>AvoidArrayLoops</rule>
+	<rule>UnnecessaryWrapperObjectCreation</rule>
+	<rule>AddEmptyString</rule>
+	<rule>RedundantFieldInitializer</rule>
+	<rule>PrematureDeclaration</rule>
+</ruleset>
+
+
+<ruleset name="strictexception">
+	<rule>AvoidCatchingThrowable</rule>
+	<rule>SignatureDeclareThrowsException</rule>
+	<rule>ExceptionAsFlowControl</rule>
+	<rule>AvoidCatchingNPE</rule>
+	<rule>AvoidThrowingRawExceptionTypes</rule>
+	<rule>AvoidThrowingNullPointerException</rule>
+	<rule>AvoidRethrowingException</rule>
+	<rule>DoNotExtendJavaLangError</rule>
+	<rule>DoNotThrowExceptionInFinally</rule>
+	<rule>AvoidThrowingNewInstanceOfSameException</rule>
+	<rule>AvoidCatchingGenericException</rule>
+	<rule>AvoidLosingExceptionInformation</rule>
+</ruleset>
+
+<ruleset name="strings">
+	<rule>AvoidDuplicateLiterals</rule>
+	<rule>StringInstantiation</rule>
+	<rule>StringToString</rule>
+	<rule>InefficientStringBuffering</rule>
+	<rule>UnnecessaryCaseChange</rule>
+	<rule>UseStringBufferLength</rule>
+	<rule>AppendCharacterWithChar</rule>
+	<rule>ConsecutiveAppendsShouldReuse</rule>
+	<rule>ConsecutiveLiteralAppends</rule>
+	<rule>UseIndexOfChar</rule>
+	<rule>UselessStringValueOf</rule>
+	<rule>StringBufferInstantiationWithChar</rule>
+	<rule>UseEqualsToCompareStrings</rule>
+	<rule>AvoidStringBufferField</rule>
+</ruleset>
+
+<ruleset name="sunsecure">
+	<rule>MethodReturnsInternalArray</rule>
+	<rule>ArrayIsStoredDirectly</rule>
+</ruleset>
+
+<ruleset name="typeresolution">
+	<rule>LooseCoupling</rule>
+	<rule>CloneMethodMustImplementCloneable</rule>
+	<rule>UnusedImports</rule>
+	<rule>SignatureDeclareThrowsException</rule>
+</ruleset>
+
+<ruleset name="unnecessary">
+	<rule>UnnecessaryConversionTemporary</rule>
+	<rule>UnnecessaryReturn</rule>
+	<rule>UnnecessaryFinalModifier</rule>
+	<rule>UselessOverridingMethod</rule>
+	<rule>UselessOperationOnImmutable</rule>
+	<rule>UnusedNullCheckInEquals</rule>
+	<rule>UselessParentheses</rule>
+	<rule>UselessQualifiedThis</rule>
+</ruleset>
+
+<ruleset name="unusedcode">
+	<rule>UnusedPrivateField</rule>
+	<rule>UnusedLocalVariable</rule>
+	<rule>UnusedPrivateMethod</rule>
+	<rule>UnusedFormalParameter</rule>
+	<rule>UnusedModifier</rule>
+</ruleset>
+
+
+
+</rules-pmd>

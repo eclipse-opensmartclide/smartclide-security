@@ -27,10 +27,8 @@ public class TheiaService {
 
     public String retrieveGithubCode(String url, UUID id) throws IOException {
 
+        //Get hashcode of latest commit of git repository and download the repository
 
-        //System.out.println("home = " +System.getProperty("user.home"));
-        //File dir = new File("/home/upload/" + id.toString());
-        String hashCode = "";
         HttpHeaders headers = new HttpHeaders();
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity request = new HttpEntity(headers);
@@ -43,7 +41,7 @@ public class TheiaService {
 
         String name= "";
         name = response.getBody();
-        //System.out.println(name);
+
         Pattern pattern = Pattern.compile("(.*) (refs\\/heads\\/master)");
         Pattern pattern2 = Pattern.compile("(.*) (refs\\/heads\\/main)");
 
@@ -76,24 +74,11 @@ public class TheiaService {
 
             try {
 
-               System.out.println("Cloning " + url + " into " + id.toString());
-                Git some = Git.cloneRepository()
+                System.out.println("Cloning " + url + " into " + id.toString());
+                Git repo = Git.cloneRepository()
                         .setURI(url)
                         .setDirectory(Paths.get("/home/upload/" + name).toFile())
                         .call();
-
-                //Ref head = retrieveGithubCode().substring().getRepository().exactRef("HEAD");
-
-//            Ref head = some.getRepository().exactRef("HEAD");
-                Ref headhash = some.getRepository().getAllRefs().get("HEAD");
-
-                // System.out.println("Ref of HEAD: " + headhash + ": " + headhash.getName() + " - " + headhash.getObjectId().getName());
-                hashCode = headhash.getObjectId().getName();
-
-
-               System.out.println("Hash " + hashCode);
-
-                //System.out.println(some.getRepository().getBranch());
 
                 System.out.println("Completed Cloning");
             } catch (GitAPIException e) {

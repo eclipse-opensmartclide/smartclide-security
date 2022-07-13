@@ -29,26 +29,20 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 public class SmartCLIDEController {
 
-    @Autowired
-    private TheiaService theiaService;
-
-    @Autowired
-    private CKService ckService;
-
-    @Autowired
-    private PMDService pmdService;
-
-    @Autowired
-    private FileUtilService fileUtilService;
-
-    @Autowired
-    private SonarqubeService sonarqubeService;
-
-    @Autowired
-    private VPService vpService;
-
 //Environmental variable, token to access Sonarqube.
     private static String token = "d3b6eaec7d63025f148d9d3345dc8be68c428f82";
+    @Autowired
+    private TheiaService theiaService;
+    @Autowired
+    private CKService ckService;
+    @Autowired
+    private PMDService pmdService;
+    @Autowired
+    private FileUtilService fileUtilService;
+    @Autowired
+    private SonarqubeService sonarqubeService;
+    @Autowired
+    private VPService vpService;
 
     //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
     @PostMapping("/analyze")
@@ -57,263 +51,185 @@ public class SmartCLIDEController {
 
         UUID id = UUID.randomUUID();
 
-        if(language.equals("Maven")){
+        if (language.equals("Maven")) {
 
 
-          sonarProperties.get("CK").put("loc", new ArrayList<>());
-          HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-          HashMap<String, Double> sonarPropertyScores = new HashMap<>();
-          Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
-//
-//      Downloading the Github Project.
+            //Get CK amd metricKey values from the request
+
+            sonarProperties.get("CK").put("loc", new ArrayList<>());
+            HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
+            Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
 
 
-//            if(dir.exists()){
-//                FileUtils.deleteDirectory(dir);
-//            }
-
-            String branchSHA =  this.theiaService.retrieveGithubCode(url, id);
+            //Download git repository if it is not downloaded already, create a folder name with SHA from latest commit
+            String branchSHA = this.theiaService.retrieveGithubCode(url, id);
             Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
             Matcher matcher = pattern.matcher(url);
-            String name= "";
+            String name = "";
 
-            // Throws exception on failure
-//            Files.createDirectory(Paths.get("/home/upload/"+branchSHA),
-//                    PosixFilePermissions.asFileAttribute(
-//                            PosixFilePermissions.fromString("rwxr-x---")
-//                    ));
+
             File dir = new File("/home/upload/" + branchSHA);
 
-            Files.setPosixFilePermissions(Paths.get("/home/upload/"+branchSHA), PosixFilePermissions.fromString("rwxr-x---"));
+            Files.setPosixFilePermissions(Paths.get("/home/upload/" + branchSHA), PosixFilePermissions.fromString("rwxr-x---"));
 
 
-            if (matcher.find())
-            {
-                name =matcher.group(2);
+            if (matcher.find()) {
+                name = matcher.group(2);
             }
 
 
-          LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
+            LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
-//      Analyzing project with CK tool, alongside with the default values chosed for the CK tool
+            //Analyzing project with CK tool, alongside with the default values chosed for the CK tool
 
-          ArrayList <String> stone = new ArrayList<>(sonarProperties.get("CK").keySet());
+            ArrayList<String> stone = new ArrayList<>(sonarProperties.get("CK").keySet());
 
-          HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(sonarProperties.get("CK").keySet()));
-          analysis.put("CK", ckValues);
+            HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(sonarProperties.get("CK").keySet()));
+            analysis.put("CK", ckValues);
 
-//      Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
+            //Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
 
-          HashMap<String, Double> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
-          analysis.put("PMD", pmdValues);
+            HashMap<String, Double> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
+            analysis.put("PMD", pmdValues);
 
-          //SONARQUBE
+            //SONARQUBE checking if already analyzed and analyze
 
-            if(!sonarqubeService.projectExists(name,token)) {
-                this.sonarqubeService.sonarMavenAnalysis(branchSHA,name, token);
+            if (!sonarqubeService.projectExists(name, token)) {
+                this.sonarqubeService.sonarMavenAnalysis(branchSHA, name, token);
                 //TimeUnit.SECONDS.sleep(0);
 
             }
 
-//      Analyze Sonarqube Metrics Hardcoded.
-            Double linesOfCode = this.sonarqubeService.linesOfCode(token,name);
+            //Analyze Sonarqube Metrics Hardcoded.
+            Double linesOfCode = this.sonarqubeService.linesOfCode(token, name);
 
 
-//      Analyze
-//      Sonarqube Vulnerabilities Hardcoded.
+            //Analyze
+            //Sonarqube Vulnerabilities Hardcoded.
 
-          sonarAnalysis.put("Sonarqube",this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("Sonarqube").keySet(), name,linesOfCode));
-
-
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-          HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
-          analysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics,name));
-
-          propertyScores.put("weak_cryptography", propertyScores.get("weak-cryptography"));
-          propertyScores.remove("weak-cryptography");
-          propertyScores.put("sql_injection", propertyScores.get("sql-injection"));
-          propertyScores.remove("sql-injection");
-          propertyScores.put("insecure_conf", propertyScores.get("insecure-conf"));
-          propertyScores.remove("insecure-conf");
-          analysis.put("Property_Scores", propertyScores);
+            sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("Sonarqube").keySet(), name, linesOfCode));
 
 
+            analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+            HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
+            analysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, name));
 
-//      Calculating characteristic res for the characteristics the user chose.
-          HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
-          analysis.put("Characteristic_Scores", characteristicScores);
+            propertyScores.put("weak_cryptography", propertyScores.get("weak-cryptography"));
+            propertyScores.remove("weak-cryptography");
+            propertyScores.put("sql_injection", propertyScores.get("sql-injection"));
+            propertyScores.remove("sql-injection");
+            propertyScores.put("insecure_conf", propertyScores.get("insecure-conf"));
+            propertyScores.remove("insecure-conf");
+            analysis.put("Property_Scores", propertyScores);
 
-////      Calculating security index.
-          HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
-          analysis.put("Security_index", securityIndex);
 
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+            //Calculating characteristic res for the characteristics the user chose.
+            HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
+            analysis.put("Characteristic_Scores", characteristicScores);
 
-////      Include Vulnerability Prediction Model.
-//
+            ////Calculating security index.
+            HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
+            analysis.put("Security_index", securityIndex);
 
-//////      Return the analysis map.
+            analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+
+            ////// Return the analysis map.
             return new ResponseEntity<>(analysis, HttpStatus.CREATED);
-      }
-        else if(language.equals("Python")){
 
+        } else if ((language.equals("Javascript")) || (language.equals("Python"))) {
+
+
+            //  Get Metric Keys
             HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-            HashMap<String, Double> sonarPropertyScores = new HashMap<>();
+
             Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
 
 
+            LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
-//      Downloading the Github Project.
             File dir = new File("/home/upload/" + id.toString());
-            if(dir.exists()){
+            if (dir.exists()) {
                 FileUtils.deleteDirectory(dir);
             }
 
-            String branchSHA =  this.theiaService.retrieveGithubCode(url, id);
+            String branchSHA = this.theiaService.retrieveGithubCode(url, id);
             Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
             Matcher matcher = pattern.matcher(url);
-            String name= "";
+            String name = "";
 
-            if (matcher.find())
-            {
-               name =matcher.group(2);
+            if (matcher.find()) {
+                name = matcher.group(2);
             }
 
 
-
-            if(!sonarqubeService.projectExists(name,token)) {
-                this.sonarqubeService.sonarScannerAnalysis(branchSHA,name, token);
-                //TimeUnit.SECONDS.sleep(30);
-
-            }
-                LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
-           // UUID id2 = UUID.fromString( "1fd8c91b-8dc5-4bb0-927a-f51ae9786658");
-
-            Double linesOfCode = this.sonarqubeService.linesOfCode(token,name);
-
-
-            sonarAnalysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, name));
-
-            sonarAnalysis.put("Sonarqube",this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("Sonarqube").keySet(),name,linesOfCode));
-
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-          HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
-          analysis.put("Property_Scores", propertyScores);
-
-//      Calculating characteristic scores for the characteristics the user chose.
-          HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
-          analysis.put("Characteristic_Scores", characteristicScores);
-
-//      Calculating security index.
-          HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
-          analysis.put("Security_index", securityIndex);
-
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-          analysis.put("ProjectKey", new HashMap<String, Double>() {{
-              put(id.toString(), 0d);
-          }});
-
-//      Return the analysis map.
-          return new ResponseEntity<>(analysis, HttpStatus.CREATED);
-      }
-        else if (language.equals("Javascript")) {
-
-
-          HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-          HashMap<String, Double> sonarPropertyScores = new HashMap<>();
-          Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
-
-
-          LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
-            File dir = new File("/home/upload/" + id.toString());
-            if(dir.exists()){
-                FileUtils.deleteDirectory(dir);
-            }
-
-            String branchSHA =  this.theiaService.retrieveGithubCode(url, id);
-            Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
-            Matcher matcher = pattern.matcher(url);
-            String name= "";
-
-            if (matcher.find())
-            {
-                name =matcher.group(2);
-            }
-
-
-
-            if(!sonarqubeService.projectExists(name,token)) {
-                this.sonarqubeService.sonarScannerAnalysis(branchSHA,name, token);
+            if (!sonarqubeService.projectExists(name, token)) {
+                this.sonarqubeService.sonarScannerAnalysis(branchSHA, name, token);
                 //TimeUnit.SECONDS.sleep(20);
 
             }
 
 
-          Double linesOfCode = this.sonarqubeService.linesOfCode(token,name);
+            Double linesOfCode = this.sonarqubeService.linesOfCode(token, name);
 
 
-          sonarAnalysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, name));
+            sonarAnalysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(token, sonarMetrics, name));
 
-          sonarAnalysis.put("Sonarqube",this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("Sonarqube").keySet(),name,linesOfCode));
+            sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomVulnerabilities(token, sonarProperties.get("Sonarqube").keySet(), name, linesOfCode));
 
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+            analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
             HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
-          analysis.put("Property_Scores", propertyScores);
-          analysis.put("metrics", sonarAnalysis.get("metrics"));
+            analysis.put("Property_Scores", propertyScores);
+            analysis.put("metrics", sonarAnalysis.get("metrics"));
 
-//      Calculating characteristic scores for the characteristics the user chose.
+            // Calculating characteristic scores for the characteristics the user chose.
 
-          HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
-          analysis.put("Characteristic_Scores", characteristicScores);
+            HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
+            analysis.put("Characteristic_Scores", characteristicScores);
 
-//      Calculating security index.
+            // Calculating security index.
 
-          HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
-          analysis.put("Security_index", securityIndex);
+            HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
+            analysis.put("Security_index", securityIndex);
 
-          analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
+            analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
             String finalName = name;
             analysis.put("ProjectKey", new HashMap<String, Double>() {{
-              put(finalName, 0d);
-          }});
+                put(finalName, 0d);
+            }});
 
-//      Return the analysis map.
-          return new ResponseEntity<>(analysis, HttpStatus.CREATED);
+            //  Return the analysis map.
+            return new ResponseEntity<>(analysis, HttpStatus.CREATED);
 
-        }
-        else if (language.equals("CPP")) {
+        } else if (language.equals("CPP")) {
 
 
+            //Download git repository if it is not downloaded already, create a folder name with SHA from latest commit
 
             File dir = new File("/home/upload/" + id.toString());
 
-            if(dir.exists()){
+            if (dir.exists()) {
                 FileUtils.deleteDirectory(dir);
             }
 
-            String branchSHA =  this.theiaService.retrieveGithubCode(url, id);
+            String branchSHA = this.theiaService.retrieveGithubCode(url, id);
 
             Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
             Matcher matcher = pattern.matcher(url);
-            String name= "";
+            String name = "";
 
 
-            if (matcher.find())
-            {
-                name =matcher.group(2);
+            if (matcher.find()) {
+                name = matcher.group(2);
             }
 
 
             File folderSHA = new File("/home/upload/" + name);
             dir.renameTo(folderSHA);
 
-            //      Downloading the Github Project.
-
-            if(!sonarqubeService.projectExists(name,token)) {
-                this.sonarqubeService.sonarCppAnalysis(branchSHA,name, token);
+            //Run CPP analysis
+            if (!sonarqubeService.projectExists(name, token)) {
+                this.sonarqubeService.sonarCppAnalysis(branchSHA, name, token);
 
                 TimeUnit.SECONDS.sleep(30);
 
@@ -321,33 +237,22 @@ public class SmartCLIDEController {
 
 
             HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
-            HashMap<String, Double> sonarPropertyScores = new HashMap<>();
-
-
-
-            //  File dir = this.theiaService.retrieveGithubCode(url, id);
             LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
 
-//          TimeUnit.SECONDS.sleep(180);
+            Double linesOfCode = this.sonarqubeService.linesOfCode(token, name);
 
-            Double linesOfCode = this.sonarqubeService.linesOfCode(token,name);
-
-
-            sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomCPP(token, linesOfCode,name, new ArrayList<>(sonarProperties.get("Sonarqube").keySet())));
-
-
+            sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomCPP(token, linesOfCode, name, new ArrayList<>(sonarProperties.get("Sonarqube").keySet())));
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
             HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
             sonarAnalysis.put("Property_Scores", propertyScores);
 
 
-
-//      Calculating characteristic scores for the characteristics the user chose.
+            // Calculating characteristic scores for the characteristics the user chose.
             HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
             sonarAnalysis.put("Characteristic_Scores", characteristicScores);
 
-//      Calculating security index.
+            // Calculating security index.
             HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
             sonarAnalysis.put("Security_index", securityIndex);
 
@@ -359,10 +264,10 @@ public class SmartCLIDEController {
 
             return new ResponseEntity<>(sonarAnalysis, HttpStatus.CREATED);
 
-        } else{
-          //      Return the analysis map.
-          return new ResponseEntity<>(null, HttpStatus.CREATED);
-      }
+        } else {
+            //      Return the analysis map.
+            return new ResponseEntity<>(null, HttpStatus.CREATED);
+        }
     }
 
 
