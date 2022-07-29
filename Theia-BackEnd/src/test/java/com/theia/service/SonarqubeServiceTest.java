@@ -37,16 +37,17 @@
 //    void sonarJavaAnalysis() {
 //        String url = "https://github.com/spring-projects/spring-mvc-showcase";
 //        UUID id = UUID.randomUUID();
+//        String sha = "test";
 //        File dir = null;
 //        try {
-//            dir = this.theiaService.retrieveGithubCode(url, id);
+//            dir = new File(this.theiaService.retrieveGithubCode(url, id));
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
 //        assertTrue(dir.exists(), "Directory created!");
 //
 //        try {
-//            this.sonarqubeService.sonarJavaAnalysis(id, token);
+//            this.sonarqubeService.sonarMavenAnalysis(sha,id, token);
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        } catch (IOException e) {
@@ -58,7 +59,7 @@
 //        headers.setBasicAuth(token, "");
 //        HttpEntity request = new HttpEntity(headers);
 //
-//        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/components/app?component=" + id,
+//        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/components/app?component=" + id,
 //                HttpMethod.GET,
 //                request,
 //                String.class
@@ -94,7 +95,7 @@
 //        headers.setBasicAuth(token, "");
 //        HttpEntity request = new HttpEntity(headers);
 //
-//        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/components/app?component=" + id,
+//        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/components/app?component=" + id,
 //                HttpMethod.GET,
 //                request,
 //                String.class

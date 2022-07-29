@@ -1,10 +1,9 @@
 package com.theia.service;
 
 
-import com.google.gson.Gson;
+
 import com.theia.model.SonarIssue;
-//import org.json.JSONArray;
-//import org.json.JSONObject;
+
 
 
 import org.json.simple.JSONArray;
@@ -44,7 +43,7 @@ public class SonarqubeService {
         headers.setBasicAuth(token, "");
         HttpEntity request = new HttpEntity(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/projects/search?projects=" + id ,
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/projects/search?projects=" + id ,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -71,7 +70,7 @@ public class SonarqubeService {
         headers.setBasicAuth(token, "");
         HttpEntity request = new HttpEntity(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/ce/task?id=" + taskId,
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/ce/task?id=" + taskId,
                 HttpMethod.GET,
                 request,
                 String.class
@@ -156,7 +155,7 @@ public class SonarqubeService {
 
         File dir = new File("/home/upload/" + sha + "/report");
 
-        final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://localhost:9000 -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+        final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
 
         new Thread(new Runnable() {
             public void run() {
@@ -182,7 +181,7 @@ public class SonarqubeService {
     public void sonarScannerAnalysis(String sha,String name, String token) throws InterruptedException, IOException, ParseException {
 
 
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report/");
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://sonarqube:9000 " + "  -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report/");
         builder.redirectErrorStream(true);
 
 
@@ -240,22 +239,63 @@ public class SonarqubeService {
         headers.setBasicAuth(token, "");
         HttpEntity request = new HttpEntity(headers);
 
+        //Create quality profile
+        try {
+
+
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/create?language=cxx&name=Sonar Myway",
+                HttpMethod.POST,
+                request,
+                String.class
+
+
+        );
+            String json = response.getBody();
+
+
+            JSONParser parser = new JSONParser();
+            JSONObject object = (JSONObject) parser.parse(json);
+
+            JSONObject object1 = (JSONObject) object.get("errors");
+            if (object1==null){
+                object = (JSONObject) object.get("profile");
+                String key = (String) object.get("key");
+
+                //Add Rules to Quality Profile
+                ResponseEntity<String> response4 = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/activate_rules?activation=false&languages=cxx&targetKey="+key,
+                        HttpMethod.POST,
+                        request,
+                        String.class
+                );
+
+            }
+
+        } catch (Exception HttpClientErrorException$BadRequest) { }
+
+
+
+
+
+
         //Create a project in Sonarqube
-        ResponseEntity<String> response1 = restTemplate.exchange("http://localhost:9000/api/projects/create?name=" + name + "&project=" + name,
+        ResponseEntity<String> response1 = restTemplate.exchange("http://sonarqube:9000/api/projects/create?name=" + name + "&project=" + name,
                 HttpMethod.POST,
                 request,
                 String.class
         );
 
+
+
         //Assign quality profile to the project before scan
-        ResponseEntity<String> response2 = restTemplate.exchange("http://localhost:9000/api/qualityprofiles/add_project?project=" + name + "&qualityProfile=Sonar myway&language=cxx",
+
+        ResponseEntity<String> response2 = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/add_project?project=" + name + "&qualityProfile=Sonar Myway&language=cxx",
                 HttpMethod.POST,
                 request,
                 String.class
         );
 
         //Run CPP Sonarqube analysis
-        ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://localhost:9000 " + "  -Dsonar.login=" + token + " -Dsonar.cxx.cppcheck.reportPaths=" + "build/report.xml" + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+        ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://sonarqube:9000 " + "  -Dsonar.login=" + token + " -Dsonar.cxx.cppcheck.reportPaths=" + "build/report.xml" + " -Dsonar.working.directory=/home/upload/" + sha + "/report"+ " -Dsonar.cxx.file.suffixes=.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h"+ " -Dsonar.language=cxx"+ " -Dsonar.inclusions=**/*.cxx,**/*.cpp,**/*.cc,**/*.c,**/*.hxx,**/*.hpp,**/*.hh,**/*.h,**/*.r");
 
 
         builder2.redirectErrorStream(true);
@@ -293,8 +333,8 @@ public class SonarqubeService {
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(token, "");
             HttpEntity request = new HttpEntity(headers);
-           // System.out.println("http://localhost:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul);
-            ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul,
+           // System.out.println("http://sonarqube:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul);
+            ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul,
                     HttpMethod.GET,
                     request,
                     String.class
@@ -329,7 +369,7 @@ public class SonarqubeService {
         }
         params += "ncloc";
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/measures/component?component=" + id + "&metricKeys=" + params,
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=" + params,
                 HttpMethod.GET,
                 request,
                 String.class
@@ -376,7 +416,7 @@ public class SonarqubeService {
 
             HashSet<String> SupressRules = new HashSet<>();
 
-            File file = new File(Path.of("").toAbsolutePath().toString() + "/CppRules/" + rule + ".xml");
+            File file = new File( "/opt/resources/CppRules/" + rule + ".xml");
 
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -451,7 +491,7 @@ public class SonarqubeService {
 
         //Request cppcheck
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/issues/search?componentKeys=" + id + "&tags=cppcheck",
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/issues/search?componentKeys=" + id + "&tags=cppcheck",
                 HttpMethod.POST,
                 request,
                 String.class
@@ -522,9 +562,9 @@ public class SonarqubeService {
         headers.setBasicAuth(token, "");
         HttpEntity request = new HttpEntity(headers);
 
-       // System.out.println("http://localhost:9000/api/measures/component?component=" + id + "&metricKeys=ncloc");
+       // System.out.println("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=ncloc");
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/measures/component?component=" + id + "&metricKeys=ncloc",
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=ncloc",
                 HttpMethod.GET,
                 request,
                 String.class
@@ -554,7 +594,7 @@ public class SonarqubeService {
         HttpEntity request = new HttpEntity(headers);
         List<SonarIssue> issues = new ArrayList<>();
 
-        ResponseEntity<String> response = restTemplate.exchange("http://localhost:9000/api/issues/search?componentKeys=" + key +"&ps=500",
+        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/issues/search?componentKeys=" + key +"&ps=500",
                 HttpMethod.GET,
                 request,
                 String.class

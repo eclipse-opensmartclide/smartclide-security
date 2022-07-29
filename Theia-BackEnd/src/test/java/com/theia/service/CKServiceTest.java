@@ -33,7 +33,7 @@
 //        UUID id = UUID.randomUUID();
 //        File dir = null;
 //        try {
-//            dir = this.theiaService.retrieveGithubCode(url, id);
+//            dir = new File(this.theiaService.retrieveGithubCode(url, id));
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }

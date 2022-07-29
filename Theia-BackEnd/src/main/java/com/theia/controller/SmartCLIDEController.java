@@ -1,19 +1,22 @@
 package com.theia.controller;
 
 
+import com.theia.TheiaBackEndApplication;
 import com.theia.service.*;
 import org.apache.commons.io.FileUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
+import java.io.*;
+
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -21,7 +24,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
 
 
 @RestController
@@ -30,7 +33,11 @@ import java.util.stream.Collectors;
 public class SmartCLIDEController {
 
 //Environmental variable, token to access Sonarqube.
-    private static String token = "d3b6eaec7d63025f148d9d3345dc8be68c428f82";
+    //private static String token =  System.getenv("TOKEN") ;
+    private static String token ="";
+
+    //private static String token =  "d3b6eaec7d63025f148d9d3345dc8be68c428f82" ;
+
     @Autowired
     private TheiaService theiaService;
     @Autowired
@@ -50,6 +57,49 @@ public class SmartCLIDEController {
       public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
 
         UUID id = UUID.randomUUID();
+
+        //Create user token
+        try {
+
+            RestTemplate restTemplate2 = new RestTemplate();
+            HttpHeaders headers2 = new HttpHeaders();
+            headers2.setBasicAuth("admin", "admin");
+            HttpEntity request = new HttpEntity(headers2);
+            ResponseEntity<String> response = restTemplate2.exchange("http://sonarqube:9000/api/user_tokens/generate?name=sonarqubekey",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+
+
+
+            );
+
+            String json = response.getBody();
+
+
+            JSONParser parser = new JSONParser();
+            JSONObject object = (JSONObject) parser.parse(json);
+
+            token = (String) object.get("token");
+
+            //Set TOKEN as environmental variable
+            updateEnv("TOKEN",token);
+
+
+        } catch (Exception E) {
+            token = System.getenv("TOKEN") ;
+            System.out.println("User already exists");
+        }
+
+        //InputStream is = getClassLoader().getResourceAsStream("Dead_Code.xml");
+
+//        URL url2 = getClass().getResource("CppRules/Dead_Code.xml");
+//
+//        try {
+//            FileUtils.copyURLToFile(url2, new File("/opt/resources/one.xml"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         if (language.equals("Maven")) {
 
@@ -147,10 +197,10 @@ public class SmartCLIDEController {
 
             LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
-            File dir = new File("/home/upload/" + id.toString());
-            if (dir.exists()) {
-                FileUtils.deleteDirectory(dir);
-            }
+//            File dir = new File("/home/upload/" + id.toString());
+//            if (dir.exists()) {
+//                FileUtils.deleteDirectory(dir);
+//            }
 
             String branchSHA = this.theiaService.retrieveGithubCode(url, id);
             Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
@@ -193,10 +243,10 @@ public class SmartCLIDEController {
             analysis.put("Security_index", securityIndex);
 
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-            String finalName = name;
-            analysis.put("ProjectKey", new HashMap<String, Double>() {{
-                put(finalName, 0d);
-            }});
+            //String finalName = name;
+//            analysis.put("ProjectKey", new HashMap<String, Double>() {{
+//                put(finalName, 0d);
+//            }});
 
             //  Return the analysis map.
             return new ResponseEntity<>(analysis, HttpStatus.CREATED);
@@ -257,9 +307,9 @@ public class SmartCLIDEController {
             sonarAnalysis.put("Security_index", securityIndex);
 
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
-            sonarAnalysis.put("ProjectKey", new HashMap<String, Double>() {{
-                put(id.toString(), 0d);
-            }});
+//            sonarAnalysis.put("ProjectKey", new HashMap<String, Double>() {{
+//                put(id.toString(), 0d);
+//            }});
 
 
             return new ResponseEntity<>(sonarAnalysis, HttpStatus.CREATED);
@@ -268,6 +318,12 @@ public class SmartCLIDEController {
             //      Return the analysis map.
             return new ResponseEntity<>(null, HttpStatus.CREATED);
         }
+    }
+    public static void updateEnv(String name, String val) throws ReflectiveOperationException {
+        Map<String, String> env = System.getenv();
+        Field field = env.getClass().getDeclaredField("m");
+        field.setAccessible(true);
+        ((Map<String, String>) field.get(env)).put(name, val);
     }
 
 

@@ -141,7 +141,7 @@
 
 		<resources>
 			<resource>
-				<directory>src/main/resources/etc</directory>
+				<directory>src/main/resources/</directory>
 			</resource>
 		</resources>
 	</build>
