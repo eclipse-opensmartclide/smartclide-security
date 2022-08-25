@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="resourceHandRuleset" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" >
+
+ <description>
+   SDK ruleset Replica
+ </description>
+
+<rule ref="category/java/errorprone.xml/DoNotCallGarbageCollectionExplicitly" />
+
+<rule ref="category/java/errorprone.xml/CloseResource" />
+
+<rule ref="category/java/errorprone.xml/InstantiationToGetClass" />
+
+<rule ref="category/java/errorprone.xml/UnnecessaryCaseChange" />
+
+
+<!-- Instatiation Rules - Check if they should be assigned to Assignment Property -->
+
+</ruleset>
