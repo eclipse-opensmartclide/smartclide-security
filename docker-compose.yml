@@ -2,6 +2,7 @@ version: "3.2"
 services:
  sonarqube:
     build: .
+    image: smartclide2022/sonar
     ports:
       - "9000:9000"
     networks:
@@ -12,7 +13,8 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
  
  ssas:
-    build: ssas 
+    build: ssas
+    image: smartclide2022/ssas
     ports:
       - "8080:8080"
     networks:
