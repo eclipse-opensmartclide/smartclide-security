@@ -1,6 +1,7 @@
 version: "3.2"
 services:
  sonarqube:
+    container_name: sonarqube
     build: .
     image: smartclide2022/sonar
     ports:
@@ -13,6 +14,7 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
  
  ssas:
+    container_name: ssas
     build: ssas
     image: smartclide2022/ssas
     ports:
