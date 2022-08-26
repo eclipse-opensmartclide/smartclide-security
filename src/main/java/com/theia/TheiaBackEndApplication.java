@@ -23,6 +23,7 @@ public class TheiaBackEndApplication {
 		factory.setMaxFileSize(DataSize.parse("4000MB"));
 		factory.setMaxRequestSize(DataSize.parse("4000MB"));
 		return factory.createMultipartConfig();
+
 	}
 
 	public static void main(String[] args) {
