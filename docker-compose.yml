@@ -2,7 +2,7 @@ version: "3.2"
 services:
  sonarqube:
     container_name: sonarqube
-    build: .
+    build: sonarqube
     image: smartclide2022/sonar
     ports:
       - "9000:9000"
@@ -15,7 +15,7 @@ services:
  
  ssas:
     container_name: ssas
-    build: ssas
+    build: .
     image: smartclide2022/ssas
     ports:
       - "8080:8080"
