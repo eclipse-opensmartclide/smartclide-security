@@ -35,6 +35,7 @@ public class SmartCLIDEController {
 //Environmental variable, token to access Sonarqube.
     //private static String token =  System.getenv("TOKEN") ;
     private static String token ="";
+    private static String token_name ="";
 
     //private static String token =  "d3b6eaec7d63025f148d9d3345dc8be68c428f82" ;
 
@@ -67,7 +68,9 @@ public class SmartCLIDEController {
             HttpHeaders headers2 = new HttpHeaders();
             headers2.setBasicAuth("admin", "admin");
             HttpEntity request = new HttpEntity(headers2);
-            ResponseEntity<String> response = restTemplate2.exchange("http://sonarqube:9000/api/user_tokens/generate?name=sonarkey",
+            token_name = System.getenv("TOKEN_NAME") ;
+
+            ResponseEntity<String> response = restTemplate2.exchange("http://sonarqube:9000/api/user_tokens/generate?name="+token_name,
                     HttpMethod.POST,
                     request,
                     String.class
