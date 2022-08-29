@@ -61,11 +61,13 @@ public class SmartCLIDEController {
         //Create user token
         try {
 
+
+
             RestTemplate restTemplate2 = new RestTemplate();
             HttpHeaders headers2 = new HttpHeaders();
             headers2.setBasicAuth("admin", "admin");
             HttpEntity request = new HttpEntity(headers2);
-            ResponseEntity<String> response = restTemplate2.exchange("http://sonarqube:9000/api/user_tokens/generate?name=sonarqubekeys",
+            ResponseEntity<String> response = restTemplate2.exchange("http://sonarqube:9000/api/user_tokens/generate?name=sonarkey",
                     HttpMethod.POST,
                     request,
                     String.class
