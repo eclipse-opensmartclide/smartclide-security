@@ -1,0 +1,32 @@
+version: "3.2"
+services:
+ sonarqube:
+    container_name: sonarqube
+    build: sonarqube
+    image: smartclide2022/sonar
+    ports:
+      - "9000:9000"
+    networks:
+      - custom-bridge2
+    volumes:
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+ 
+ ssas:
+    container_name: ssas
+    build: .
+    image: smartclide2022/ssas
+    ports:
+      - "8080:8080"
+    networks:
+      - custom-bridge2
+  
+networks:
+ custom-bridge2:
+    external: false       
+
+volumes:
+  sonarqube_logs:
+  sonarqube_data:
+  sonarqube_extensions:
