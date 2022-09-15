@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+   Copyright (C) 2021-2022 CERTH
+   
+   This program and the accompanying materials are made
+   available under the terms of the Eclipse Public License 2.0
+   which is available at https://www.eclipse.org/legal/epl-2.0/
+   
+   SPDX-License-Identifier: EPL-2.0
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Folder upload</title>
+</head>
+<body>
+<form action="code/uploadFolder" method="post" enctype="multipart/form-data">
+    <!-- html5 supports selecting folder upload -->
+    <input type="file" name="folder" multiple webkitdirectory>
+    <button type="submit">Upload</button>
+</form>
+</body>
+</html>
+
