@@ -1,57 +1,56 @@
-/*******************************************************************************
- * Copyright (C) 2021-2022 CERTH
- * 
- * This program and the accompanying materials are made
- * available under the terms of the Eclipse Public License 2.0
- * which is available at https://www.eclipse.org/legal/epl-2.0/
- * 
- * SPDX-License-Identifier: EPL-2.0
- ******************************************************************************/
-//package com.theia.service;
+package com.theia.service;
+
+import com.theia.model.PMDvalues;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+class PMDServiceTest {
+
+    @Autowired
+    TheiaService theiaService;
+
+    @Autowired
+    CKService ckService;
+
+    @Autowired
+    PMDService pmdService;
+
+    @Test
+    void filterRecords() {
+
+    }
+
+    //@Test
+//    void generateCustomPMDValues() throws InterruptedException {
 //
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.test.context.junit.jupiter.SpringExtension;
-//
-//import java.io.File;
-//import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.UUID;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//@ExtendWith(SpringExtension.class)
-//@SpringBootTest
-//class PMDServiceTest {
-//
-//    @Autowired
-//    TheiaService theiaService;
-//
-//    @Autowired
-//    CKService ckService;
-//
-//    @Autowired
-//    PMDService pmdService;
-//
-//    @Test
-//    void filterRecords() {
-//
-//    }
-//
-//    @Test
-//    void generateCustomPMDValues() {
-//        String url = "https://github.com/spring-projects/spring-mvc-showcase";
+//        String url = "https://github.com/spring-projects/spring-mvc-showcase.git";
 //        UUID id = UUID.randomUUID();
-//        File dir = null;
-//        try {
-//            dir = this.theiaService.retrieveGithubCode(url, id);
-//        } catch (IOException e) {
-//            e.printStackTrace();
+//        Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
+//        Matcher matcher = pattern.matcher(url);
+//        String name = "";
+//        if (matcher.find()) {
+//            name = matcher.group(2);
 //        }
+//
+//
+//        File dir = new File("/home/upload/" + name);
+//
 //
 //        List<String> ckProperties = new ArrayList<>(){{
 //            add("loc");
@@ -74,9 +73,9 @@
 //        }};
 //
 //        HashMap<String, Double> pmdValues = new HashMap<>();
-//
+//        PMDvalues pmdValues2;
 //        try {
-//            pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), pmdProperties);
+//             pmdValues2 = this.pmdService.generateCustomPMDValues(false,ckValues.get("loc"), dir.toString(), pmdProperties);
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
@@ -87,7 +86,7 @@
 //
 //        pmdProperties.add("ResourceHandling");
 //        try {
-//            pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), dir.toString(), pmdProperties);
+//            pmdValues2 = this.pmdService.generateCustomPMDValues(true,ckValues.get("loc"), dir.toString(), pmdProperties);
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
@@ -95,5 +94,4 @@
 //        assertEquals(pmdProperties.size(), pmdValues.keySet().size());
 //        assertFalse(pmdValues.get("ResourceHandling").isNaN(), "Works!");
 //    }
-//}
-
+}

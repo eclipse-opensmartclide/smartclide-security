@@ -25,6 +25,6 @@ jobs:
           # login to GitHub Container Registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${GITHUB_ACTOR} --password-stdin
           # build image
-          docker build . --tag ghcr.io/eclipse-opensmartclide/smartclide/security:$(date +'%Y-%m-%d')
+          docker build . --tag ghcr.io/eclipse-researchlabs/smartclide/security:$(date +'%Y-%m-%d')
           # push image
-          docker push ghcr.io/eclipse-opensmartclide/smartclide/security:$(date +'%Y-%m-%d')
+          docker push ghcr.io/eclipse-researchlabs/smartclide/security:$(date +'%Y-%m-%d')

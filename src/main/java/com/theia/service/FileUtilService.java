@@ -26,7 +26,8 @@ public class FileUtilService {
 
     public String saveFolder(MultipartFile zip, String dir) throws IOException {
 
-        String basePath = Path.of("").toAbsolutePath().toString() + "/upload/";
+        //String basePath = Path.of("").toAbsolutePath().toString() + "/home/upload/";
+        String basePath = "/home/upload/zip/";
 
         if(zip.getOriginalFilename() == null || zip.isEmpty()){
             return "";
@@ -36,7 +37,13 @@ public class FileUtilService {
         ZipInputStream inputStream = new ZipInputStream(zip.getInputStream());
         Path path = Paths.get(makeDir(basePath + dir));
 
+        Path ReturnPath =  path;
+        int i=0;
         for(ZipEntry zipEntry; (zipEntry = inputStream.getNextEntry()) != null; ){
+            if (i==0){
+                ReturnPath = path.resolve(zipEntry.getName());
+                i++;
+            }
             Path resolvedPath = path.resolve(zipEntry.getName());
             if(!zipEntry.isDirectory()){
                 Files.createDirectories(resolvedPath.getParent());
@@ -47,7 +54,7 @@ public class FileUtilService {
         }
 
 
-        return basePath + dir;
+        return ReturnPath.toString();
 
     }
 

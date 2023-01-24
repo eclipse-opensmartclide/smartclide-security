@@ -17,5 +17,6 @@
 <rule ref="category/java/errorprone.xml/MoreThanOneLogger" />
 <rule ref="category/java/errorprone.xml/UseCorrectExceptionLogging" />
 <rule ref="category/java/errorprone.xml/ProperLogger" />
-
+<rule ref="rulesets/java/logging-java.xml"/>
+<rule ref="rulesets/java/logging-jakarta-commons.xml"/>
 </ruleset>
