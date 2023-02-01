@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #*******************************************************************************
 
-FROM ubuntu:22.04
+FROM ubuntu:23.04
 	
 
 RUN apt-get update && apt-get install default-jdk -y
