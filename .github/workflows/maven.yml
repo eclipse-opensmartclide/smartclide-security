@@ -24,4 +24,3 @@ jobs:
           docker build . --tag ghcr.io/eclipse-opensmartclide/opensmartclide/security:$(date +'%Y-%m-%d')
           # push image
           docker push ghcr.io/eclipse-opensmartclide/opensmartclide/security:$(date +'%Y-%m-%d')
-          
