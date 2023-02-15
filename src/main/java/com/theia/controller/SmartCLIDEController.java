@@ -34,13 +34,12 @@ import java.util.regex.Pattern;
 @CrossOrigin("*")
 public class SmartCLIDEController {
 
-    //Environmental variable, token to access Sonarqube.
+    //Environmental variable, token to access SonarQube.
     //private static String token =  System.getenv("TOKEN") ;
 
-    private static String sonar_user = "admin";
-    private static String sonar_password= "admin";
-
-    public static String host = "sonarqube";
+    private static String sonar_user = System.getenv("SONAR_USER");
+    private static String sonar_password= System.getenv("SONAR_PASS");
+    public static String sonar_host = System.getenv("SONAR_HOST");
 
     @Autowired
     private TheiaService theiaService;
@@ -55,7 +54,7 @@ public class SmartCLIDEController {
     @Autowired
     private VPService vpService;
 
-    //  Endpoint, providing Github URL, downloading and analyzing the project with default values of the CK and PMD tools.
+    //  Endpoint, providing GitHub URL, downloading and analyzing the project with default values of the CK and PMD tools.
 
     //Analyze compiled java project from zip file
     @PostMapping(value = "analyze_local",
