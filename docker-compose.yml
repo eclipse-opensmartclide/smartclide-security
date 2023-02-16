@@ -1,9 +1,36 @@
 version: "3.2"
+
 services:
- vam:
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    networks:
+      - custom-bridge3
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  sonarqube:
+    container_name: sonarqube
+    image: ghcr.io/eclipse-opensmartclide/opensmartclide/sonarqube-security-opensmartclide:latest
+    ports:
+      - "9000:9000"
+    networks:
+      - custom-bridge2
+    volumes:
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+  ssas:
+    container_name: ssas
+    image: ghcr.io/eclipse-opensmartclide/opensmartclide/ssas:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - custom-bridge2
+  vam:
     container_name: vam
-    build: VulnerabilityAssessmentModels
-    image: smartclide2022/vam
+    image: ghcr.io/eclipse-opensmartclide/opensmartclide/vam:latest
     environment:
       - MONGO_IP=mongodb
       - MONGO_PORT=27017
@@ -14,37 +41,7 @@ services:
       - "5008:5008"
     networks:
       - custom-bridge3
- mongodb:
-    container_name: mongodb
-    image: mongo
-    networks:
-      - custom-bridge3
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
- sonarqube:
-    container_name: sonarqube
-    build: sonarqube
-    image: smartclide2022/sonar
-    ports:
-      - "9000:9000"
-    networks:
-      - custom-bridge2
-    volumes:
-      - sonarqube_logs:/opt/sonarqube/logs
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
- 
- ssas:
-    container_name: ssas
-    build: .
-    image: smartclide2022/ssas
-    ports:
-      - "8080:8080"
-    networks:
-      - custom-bridge2
-  
+
 networks:
  custom-bridge2:
     external: false
