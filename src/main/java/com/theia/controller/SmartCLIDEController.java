@@ -10,6 +10,7 @@ import org.jdom2.JDOMException;
 
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,10 +37,15 @@ public class SmartCLIDEController {
 
     //Environmental variable, token to access SonarQube.
     //private static String token =  System.getenv("TOKEN") ;
-
-    private static String sonar_user = System.getenv("SONAR_USER");
-    private static String sonar_password= System.getenv("SONAR_PASS");
-    public static String sonar_host = System.getenv("SONAR_HOST");
+	
+	@Value("${sonar.user}")
+    private static String sonar_user;
+    
+	@Value("${sonar.password}")
+	private static String sonar_password;
+	
+	@Value("${sonar.host}")
+    public static String sonar_host;
 
     @Autowired
     private TheiaService theiaService;
