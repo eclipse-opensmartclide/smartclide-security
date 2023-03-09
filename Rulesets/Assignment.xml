@@ -10,21 +10,40 @@
 -->
 <ruleset name="assignmentRuleset" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" >
 
+    <rule ref="rulesets/java/design.xml/AvoidReassigningParameters"/>
 
-<rule ref="category/java/errorprone.xml/IdempotentOperations" />
+    <rule ref="rulesets/java/design.xml/IdempotentOperations"/>
 
-<rule ref="category/java/errorprone.xml/AssignmentToNonFinalStatic" />
+    <rule ref="rulesets/java/design.xml/AssignmentToNonFinalStatic"/>
 
-<rule ref="category/java/errorprone.xml/BadComparison" />
+    <rule ref="rulesets/java/design.xml/BadComparison"/>
 
-<rule ref="category/java/errorprone.xml/SuspiciousOctalEscape" />
+    <rule ref="rulesets/java/design.xml/ImmutableField"/>
 
-<rule ref="category/java/errorprone.xml/JumbledIncrementer" />
+    <rule ref="rulesets/java/controversial.xml/DataflowAnomalyAnalysis"/>
 
-<rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
+    <rule ref="rulesets/java/controversial.xml/SuspiciousOctalEscape"/>
 
-<rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices" />
+    <rule ref="rulesets/java/controversial.xml/AvoidFinalLocalVariable"/>
 
-<rule ref="category/java/errorprone.xml/AssignmentInOperand" />
+    <rule ref="rulesets/java/controversial.xml/AvoidUsingShortType"/>
+
+    <rule ref="rulesets/java/controversial.xml/AvoidUsingVolatile"/>
+
+    <rule ref="rulesets/java/basic.xml/JumbledIncrementer"/>
+
+    <rule ref="rulesets/java/basic.xml/AvoidDecimalLiteralsInBigDecimalConstructor"/>
+
+    <rule ref="rulesets/java/basic.xml/DontUseFloatTypeForLoopIndices"/>
+
+    <rule ref="rulesets/java/optimizations.xml/LocalVariableCouldBeFinal"/>
+
+    <rule ref="rulesets/java/optimizations.xml/MethodArgumentCouldBeFinal"/>
+
+    <rule ref="rulesets/java/optimizations.xml/RedundantFieldInitializer"/>
+
+    <rule ref="rulesets/java/optimizations.xml/PrematureDeclaration"/>
+
+    <rule ref="rulesets/java/controversial.xml/AssignmentInOperand"/>
 
 </ruleset>

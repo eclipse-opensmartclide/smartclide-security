@@ -1,59 +1,69 @@
 /*******************************************************************************
  * Copyright (C) 2021-2022 CERTH
- * 
+ *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  ******************************************************************************/
 package com.theia.service;
 
 
 
+import com.google.gson.*;
 import com.theia.model.SonarIssue;
 
 
-
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.*;
 import java.io.*;
-import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.theia.controller.SmartCLIDEController.sonar_host;
+
+
+
 @Service
 public class SonarqubeService {
+    @Autowired
+    private RestTemplate restTemplate;
 
     //Method that checks if the project is already analyzed in Sonarqube
-    public boolean projectExists(String id,String token) throws ParseException {
+    public boolean projectExists(String id,String sonar_user,String sonar_password) throws ParseException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
+        headers.setBasicAuth(sonar_user, sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/projects/search?projects=" + id ,
-                HttpMethod.POST,
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/projects/search?projects=" + id ,
+                HttpMethod.GET,
                 request,
                 String.class
         );
@@ -72,14 +82,76 @@ public class SonarqubeService {
 
     }
 
-    public boolean taskRunning(String taskId,String token) throws ParseException {
+
+    //Get hotspots from Sonarqube and group them
+    public HashMap<String,JsonArray> hotspotSearch(Set<String> categories,String sonar_user, String sonar_password,String projectKey) throws ParseException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
+        headers.setBasicAuth(sonar_user, sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/ce/task?id=" + taskId,
+        String hotspotCategories = "";
+
+        for (String ele : categories) {
+            hotspotCategories = hotspotCategories +","+ ele;
+
+        }
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/hotspots/search?projectKey="+projectKey+"&sonarsourceSecurity="+ hotspotCategories ,
+                HttpMethod.GET,
+
+                request,
+                String.class
+        );
+
+        String json = response.getBody();
+
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        final JsonArray data = jsonObject.getAsJsonArray("hotspots");
+        List<String> list = new ArrayList<String>();
+
+        HashMap<String,JsonArray> jsonHash = new HashMap<>();
+        JsonArray jsonCategories = new JsonArray();
+        JsonArray hotArray = new JsonArray();
+        for (JsonElement element : data) {
+            JsonObject jsonHot = element.getAsJsonObject();
+            String securityCategory = jsonHot.get("securityCategory").toString();
+            securityCategory = securityCategory.substring(1, securityCategory.length() - 1);
+
+            jsonHot.remove("author");
+            jsonHot.remove("creationDate");
+            jsonHot.remove("updateDate");
+            jsonHot.remove("flows");
+            jsonHot.remove("status");
+            jsonHot.remove("key");
+
+            if (categories.contains(securityCategory)){
+                JsonArray temp = new JsonArray();
+
+                temp =jsonHash.get(securityCategory);
+                if(temp==null){
+                    temp = new JsonArray();
+
+                }
+                temp.add(jsonHot);
+                jsonHash.put(securityCategory,temp);
+                hotArray.add(jsonHot);
+
+
+            }
+        }
+
+        return jsonHash;
+    }
+
+    public boolean taskRunning(String taskId,String sonar_user,String sonar_password) throws ParseException {
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(sonar_user, sonar_password);
+        HttpEntity request = new HttpEntity(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/ce/task?id=" + taskId,
                 HttpMethod.GET,
                 request,
                 String.class
@@ -103,7 +175,7 @@ public class SonarqubeService {
         }
     }
 
-    public void openTaskFile(String token,String sha) throws IOException, ParseException, InterruptedException {
+    public void openTaskFile(String sonar_user,String sonar_password,String sha) throws IOException, ParseException, InterruptedException {
         //Check if Task is complete
         File file = new File(
                 "/home/upload/" + sha+"/report/report-task.txt");
@@ -118,14 +190,14 @@ public class SonarqubeService {
         // Condition holds true till
         // there is character in a string
         while ((st = br.readLine()) != null){
-           // System.out.println(st);
+            // System.out.println(st);
             Matcher matcher = pattern.matcher(st);
             boolean matchFound = matcher.find();
             if(matchFound) {
                 //System.out.println("Match found");
                 taskId = matcher.group(2);
 
-                while (!taskRunning(taskId,token)){
+                while (!taskRunning(taskId, sonar_user,sonar_password)){
 
                     System.out.println("Waited 3s");
                     TimeUnit.SECONDS.sleep(3);
@@ -142,55 +214,101 @@ public class SonarqubeService {
 
 
     }
-    public void sonarMavenAnalysis(String sha,String name, String token) throws InterruptedException, IOException, ParseException {
+    public void sonarMavenAnalysis(String sha,String name, String sonar_user,String sonar_password,String type) throws InterruptedException, IOException, ParseException {
+        System.out.println("mvn -f" + "/home/upload/" + sha + "/  package -Dmaven.test.skip=true");
 
-        final Process p1 = Runtime.getRuntime().exec("mvn -f" + "/home/upload/" + sha + "/ package");
 
-        new Thread(new Runnable() {
-            public void run() {
-                BufferedReader input = new BufferedReader(new InputStreamReader(p1.getInputStream()));
-                String line = null;
+        File dir = new File("/home/upload/" + name + "/report");
 
-                try {
-                    while ((line = input.readLine()) != null)
-                        System.out.println(line);
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if(type.equals("git")) {
+
+
+            final Process p1 = Runtime.getRuntime().exec("mvn -f" + "/home/upload/" + sha + "/  package -Dmaven.test.skip=true");
+
+            new Thread(new Runnable() {
+                public void run() {
+                    BufferedReader input = new BufferedReader(new InputStreamReader(p1.getInputStream()));
+                    String line = null;
+
+                    try {
+                        while ((line = input.readLine()) != null)
+                            System.out.println(line);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
-        p1.waitFor();
+            }).start();
+            p1.waitFor();
+
+            final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://" + sonar_host + ":9000  -Dsonar.login="+sonar_user+" -Dsonar.password="+sonar_password +" -Dmaven.test.skip=true " + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+            //sonar-scanner -Dsonar.projectKey=stest -Dsonar.java.binaries=. -Dsonar.exclusions=*.java -Dsonar.sonar_host.url=http://localhost:9000 -Dsonar.login=admin  -Dsonar.password=1234
 
 
-        File dir = new File("/home/upload/" + sha + "/report");
 
-        final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+            new Thread(new Runnable() {
+                public void run() {
+                    BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    String line = null;
 
-        new Thread(new Runnable() {
-            public void run() {
-                BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                String line = null;
-
-                try {
-                    while ((line = input.readLine()) != null)
-                        System.out.println(line);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    try {
+                        while ((line = input.readLine()) != null)
+                            System.out.println(line);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
-        p.waitFor();
+            }).start();
+            p.waitFor();
 
-        openTaskFile(token, sha);
+        }
+        else{
+            ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c","cd /home/upload/" + sha +  "&&sonar-scanner " + "  -Dsonar.projectKey=" + name +" -Dsonar.java.binaries=. -Dsonar.exclusions=*.java "+  "-Dsonar.host.url=http://" + sonar_host + ":9000 " + "  -Dsonar.login="+sonar_user+" -Dsonar.password="+sonar_password +  " -Dsonar.working.directory=/home/upload/" + sha + "/report/");
+
+            // Execute the command
+            try {
+                Process p = builder.start();
+                BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                String line;
+                //Print the messages to the console for debugging purposes
+                while (true) {
+                    line = r.readLine();
+                    System.out.println(line);
+                    if (line == null) {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        // System.out.println("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name+ "-Dsonar.java.binaries=. -Dsonar.exclusions=*.java" + " -Dsonar.host.url=http://" + sonar_host + ":9000  -Dsonar.login="+sonar_user+" -Dsonar.password="+sonar_password +" -Dmaven.test.skip=true " + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+
+        //final Process p = Runtime.getRuntime().exec("mvn  -f  " + "/home/upload/" + sha + "/  sonar:sonar -Dsonar.projectKey=" + name + " -Dsonar.host.url=http://" + sonar_host + ":9000 -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report");
+
+
+        openTaskFile(sonar_user,sonar_password, sha);
+
 
 
 
     }
 
-    public void sonarScannerAnalysis(String sha,String name, String token) throws InterruptedException, IOException, ParseException {
+    public static void stringToDom(String xmlSource, String filename)
+            throws IOException {
+        java.io.FileWriter fw = new java.io.FileWriter(filename );
+        fw.write(xmlSource);
+        fw.close();
+    }
 
 
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://sonarqube:9000 " + "  -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report/");
+    public void sonarScannerAnalysis(String name, String sonar_user,String sonar_password) throws InterruptedException, IOException, ParseException {
+
+
+        //ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://" + sonar_host + ":9000 " + "  -Dsonar.login=" + token + " -Dsonar.working.directory=/home/upload/" + sha + "/report/");
+        System.out.println("cd /home/upload/" + name + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://" + sonar_host + ":9000 " + "  -Dsonar.login="+sonar_user+" -Dsonar.password="+sonar_password +  " -Dsonar.working.directory=/home/upload/" + name + "/report/");
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + name + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://" + sonar_host + ":9000 " + "  -Dsonar.login="+sonar_user+" -Dsonar.password="+sonar_password +  " -Dsonar.working.directory=/home/upload/" + name + "/report/");
+
         builder.redirectErrorStream(true);
 
 
@@ -212,14 +330,15 @@ public class SonarqubeService {
         }
 
         //Check if running and wait
-        openTaskFile(token, sha);
+        openTaskFile( sonar_user,sonar_password, name);
 
     }
 
-    //Analysis for CPP projects
-    public void sonarCppAnalysis(String sha,String name, String token) throws IOException, InterruptedException, ParseException {
 
-        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&mkdir build" + "&&cppcheck --enable=all --inconclusive --xml --force . 2>build/report.xml");
+    public void runCPPcheck(String name) throws IOException {
+        Files.setPosixFilePermissions(Paths.get("/home/upload/" + name), PosixFilePermissions.fromString("rwxr-x---"));
+        System.out.println("sudo cd /home/upload/" + name + "&&sudo mkdir build" + "&&sudo cppcheck --enable=all --inconclusive --xml --force . 2>build/report.xml");
+        ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + name + "&&mkdir build" + "&&cppcheck --enable=all --inconclusive --xml --force . 2>build/report.xml");
         builder.redirectErrorStream(true);
 
 
@@ -238,27 +357,31 @@ public class SonarqubeService {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+    }
+    //Analysis for CPP projects
+    public void sonarCppAnalysis(boolean exists,String sha,String name, String sonar_user,String sonar_password) throws IOException, InterruptedException, ParseException {
+
+        runCPPcheck(name);
 
 
-        List<String> lines = new ArrayList<>();
 
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
+        headers.setBasicAuth(sonar_user, sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
         //Create quality profile
         try {
 
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/create?language=cxx&name=Sonar Myway",
-                HttpMethod.POST,
-                request,
-                String.class
+            ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/qualityprofiles/create?language=cxx&name=Sonar Myway",
+                    HttpMethod.POST,
+                    request,
+                    String.class
 
 
-        );
+            );
             String json = response.getBody();
 
 
@@ -271,7 +394,7 @@ public class SonarqubeService {
                 String key = (String) object.get("key");
 
                 //Add Rules to Quality Profile
-                ResponseEntity<String> response4 = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/activate_rules?activation=false&languages=cxx&targetKey="+key,
+                ResponseEntity<String> response4 = restTemplate.exchange("http://" + sonar_host + ":9000/api/qualityprofiles/activate_rules?activation=false&languages=cxx&targetKey="+key,
                         HttpMethod.POST,
                         request,
                         String.class
@@ -287,7 +410,7 @@ public class SonarqubeService {
 
 
         //Create a project in Sonarqube
-        ResponseEntity<String> response1 = restTemplate.exchange("http://sonarqube:9000/api/projects/create?name=" + name + "&project=" + name,
+        ResponseEntity<String> response1 = restTemplate.exchange("http://" + sonar_host + ":9000/api/projects/create?name=" + name + "&project=" + name,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -297,14 +420,14 @@ public class SonarqubeService {
 
         //Assign quality profile to the project before scan
 
-        ResponseEntity<String> response2 = restTemplate.exchange("http://sonarqube:9000/api/qualityprofiles/add_project?project=" + name + "&qualityProfile=Sonar Myway&language=cxx",
+        ResponseEntity<String> response2 = restTemplate.exchange("http://" + sonar_host + ":9000/api/qualityprofiles/add_project?project=" + name + "&qualityProfile=Sonar Myway&language=cxx",
                 HttpMethod.POST,
                 request,
                 String.class
         );
 
         //Run CPP Sonarqube analysis
-        ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://sonarqube:9000 " + "  -Dsonar.login=" + token + " -Dsonar.cxx.cppcheck.reportPaths=" + "build/report.xml" + " -Dsonar.working.directory=/home/upload/" + sha + "/report"+ " -Dsonar.cxx.file.suffixes=.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h"+ " -Dsonar.language=cxx"+ " -Dsonar.inclusions=**/*.cxx,**/*.cpp,**/*.cc,**/*.c,**/*.hxx,**/*.hpp,**/*.hh,**/*.h,**/*.r");
+        ProcessBuilder builder2 = new ProcessBuilder("/bin/bash", "-c", "cd /home/upload/" + sha + "&&sonar-scanner " + "  -Dsonar.projectKey=" + name + "  -Dsonar.host.url=http://" + sonar_host + ":9000 " + "  -Dsonar.login=" + sonar_user + " -Dsonar.password="+sonar_password+" -Dsonar.cxx.cppcheck.reportPaths=" + "build/report.xml" + " -Dsonar.working.directory=/home/upload/" + sha + "/report"+ " -Dsonar.cxx.file.suffixes=.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h"+ " -Dsonar.language=cxx"+ " -Dsonar.inclusions=**/*.cxx,**/*.cpp,**/*.cc,**/*.c,**/*.hxx,**/*.hpp,**/*.hh,**/*.h,**/*.r");
 
 
         builder2.redirectErrorStream(true);
@@ -324,26 +447,64 @@ public class SonarqubeService {
             System.out.println(e.getMessage());
         }
 
-        openTaskFile(token, sha);
+        openTaskFile(sonar_user,sonar_password, sha);
+
+    }
+
+    public List<Map<String,String>> iterateXML(String path) throws ParserConfigurationException, IOException, SAXException, JDOMException, XPathExpressionException {
+
+        List<Map<String,String>> errors = new LinkedList<>();
+        try {
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("/home/upload/"+path+"/build/report.xml"));
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            XPathExpression exp = xPath.compile("//error");
+            NodeList nl = (NodeList)exp.evaluate(doc, XPathConstants.NODESET);
+            for (int i = 0; i < nl.getLength(); i++) {
+                Map<String,String> error = new HashMap<>();
+                NamedNodeMap nodeMap = nl.item(i).getAttributes();
+                for(int l=0; l<nodeMap.getLength(); l++){
+                    String name= nodeMap.item(l).getNodeName();
+                    String value = nodeMap.item(l).getNodeValue();
+                    error.put(name,value);
+                }
+                Node s  = nl.item(i);
+                NodeList lista =  s.getChildNodes();
+                for(int j=0; j< lista.getLength(); j++) {
+                    NamedNodeMap first = lista.item(j).getAttributes();
+                    if(first!=null) {
+                        for(int k =0; k<first.getLength(); k++) {
+                            Node childAttribute = first.item(k);
+                            error.put(childAttribute.getNodeName(), childAttribute.getNodeValue());
+                        }
+                    }
+                }
+                errors.add(error);
+
+
+            }
+            System.out.println("Found " + nl.getLength() + " results");
+        } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException ex) {
+            ex.printStackTrace();
+        }
+        return(errors);
 
     }
 
 
 
-    
-    public HashMap<String, Double> sonarqubeCustomVulnerabilities(String token, Set<String> vulnerabilities, String id,Double linesOfCode) throws ParseException {
+
+    public HashMap<String, Double> sonarqubeCustomVulnerabilities(String sonar_user,String sonar_password, Set<String> vulnerabilities, String id,Double linesOfCode) throws ParseException {
         HashMap<String, Double> sonarqubeVulnerabilities = new HashMap<>();
 
 //      Harcoded list of Vulnerabilities we want to search.
 
         for(String vul: vulnerabilities){
             HashMap<String, Double> sonarMetrics = new HashMap<>();
-            RestTemplate restTemplate = new RestTemplate();
+            //RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
-            headers.setBasicAuth(token, "");
+            headers.setBasicAuth(sonar_user,sonar_password);
             HttpEntity request = new HttpEntity(headers);
-           // System.out.println("http://sonarqube:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul);
-            ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul,
+            ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/hotspots/search?projectKey=" + id + "&p=1&ps=500&sonarsourceSecurity=" + vul,
                     HttpMethod.GET,
                     request,
                     String.class
@@ -363,13 +524,12 @@ public class SonarqubeService {
 
         return sonarqubeVulnerabilities;
     }
-    
-    public HashMap<String, Double> sonarqubeCustomMetrics(String token, Set<String> metrics, String id) throws ParseException {
+
+    public HashMap<String, Double> sonarqubeCustomMetrics(String sonar_user,String sonar_password, Set<String> metrics, String id) throws ParseException {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
-        RestTemplate restTemplate = new RestTemplate();
+       // RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
-        //System.out.println("Token :" + token);
+        headers.setBasicAuth(sonar_user,sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
         String params = "";
@@ -378,7 +538,7 @@ public class SonarqubeService {
         }
         params += "ncloc";
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=" + params,
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/measures/component?component=" + id + "&metricKeys=" + params,
                 HttpMethod.GET,
                 request,
                 String.class
@@ -407,7 +567,7 @@ public class SonarqubeService {
         return sonarMetrics;
     }
 
-    public HashMap<String, Double> sonarqubeCustomCPP(String token, Double linesOfCode, String id, List<String> CppRules) throws ParserConfigurationException, IOException, SAXException, ParseException {
+    public HashMap<String, Double> sonarqubeCustomCPP(String sonar_user,String sonar_password, Double linesOfCode, String id, List<String> CppRules) throws ParserConfigurationException, IOException, SAXException, ParseException {
 
 
         HashMap<String, HashSet<String>> CppRulesXML = new HashMap<>();
@@ -492,15 +652,15 @@ public class SonarqubeService {
         }
 
 
-        RestTemplate restTemplate = new RestTemplate();
+        //RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
+        headers.setBasicAuth(sonar_user, sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
 
         //Request cppcheck
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/issues/search?componentKeys=" + id + "&tags=cppcheck",
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/issues/search?componentKeys=" + id + "&tags=cppcheck",
                 HttpMethod.POST,
                 request,
                 String.class
@@ -558,22 +718,23 @@ public class SonarqubeService {
         }
 
 
+
         return sonarqubeCppIssues;
     }
 
 
 
     // Returns the lines of code of a project.
-    public Double linesOfCode(String token, String id) throws ParseException {
+    public Double linesOfCode(String sonar_user,String sonar_password, String id) throws ParseException {
         HashMap<String, Double> sonarMetrics = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(token, "");
+        headers.setBasicAuth(sonar_user,sonar_password);
         HttpEntity request = new HttpEntity(headers);
 
-       // System.out.println("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=ncloc");
+        // System.out.println("http://" + sonar_host + ":9000/api/measures/component?component=" + id + "&metricKeys=ncloc");
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/measures/component?component=" + id + "&metricKeys=ncloc",
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/measures/component?component=" + id + "&metricKeys=ncloc",
                 HttpMethod.GET,
                 request,
                 String.class
@@ -603,7 +764,7 @@ public class SonarqubeService {
         HttpEntity request = new HttpEntity(headers);
         List<SonarIssue> issues = new ArrayList<>();
 
-        ResponseEntity<String> response = restTemplate.exchange("http://sonarqube:9000/api/issues/search?componentKeys=" + key +"&ps=500",
+        ResponseEntity<String> response = restTemplate.exchange("http://" + sonar_host + ":9000/api/issues/search?componentKeys=" + key +"&ps=500",
                 HttpMethod.GET,
                 request,
                 String.class

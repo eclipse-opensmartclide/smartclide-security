@@ -9,6 +9,7 @@
  ******************************************************************************/
 package com.theia.service;
 
+import com.google.gson.Gson;
 import com.theia.model.Property;
 import org.springframework.stereotype.Service;
 
@@ -101,6 +102,8 @@ public class MeasureService {
     //Customizable endpoint.
     public static HashMap<String, Double> measureCustomPropertiesScore(HashMap<String, HashMap<String, Double>> analysis, LinkedHashMap<String, LinkedHashMap<String, List<Double>>> properties){
         HashMap<String, Double> scores = new HashMap<>();
+
+
         for(String tool: analysis.keySet()){
             for(String characteristic: analysis.get(tool).keySet()){
                 if(characteristic.equals("loc") || characteristic.equals("ncloc")){
@@ -112,6 +115,7 @@ public class MeasureService {
                 }
             }
         }
+
         return scores;
     }
 

@@ -10,13 +10,13 @@
 -->
 <ruleset name="adjRuleset" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" >
 
- <description>
-   SDK ruleset Replica
- </description>
+    <rule ref="rulesets/java/android.xml/DoNotHardCodeSDCard"/>
 
-<rule ref="category/java/errorprone.xml/DoNotHardCodeSDCard" />
+    <rule ref="rulesets/java/basic.xml/AvoidUsingHardCodedIP"/>
 
-<rule ref="category/java/errorprone.xml/AvoidLiteralsInIfCondition" />
+    <rule ref="rulesets/java/controversial.xml/AvoidLiteralsInIfCondition"/>
 
-<rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals" />
+    <rule ref="rulesets/java/controversial.xml/UseObjectForClearerAPI"/>
+
+    <rule ref="rulesets/java/strings.xml/AvoidDuplicateLiterals"/>
 </ruleset>

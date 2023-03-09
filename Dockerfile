@@ -8,8 +8,7 @@
 # SPDX-License-Identifier: EPL-2.0
 #*******************************************************************************
 
-FROM ubuntu:22.04
-	
+FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install default-jdk -y
 
@@ -24,7 +23,6 @@ RUN curl https://nodejs.org/dist/v14.17.1/node-v14.17.1-linux-x64.tar.gz |tar xz
 
 WORKDIR /opt/app
 ENV HOME=/opt/app
-ENV TOKEN_NAME=sonarkeyone
 
 RUN apt install wget -y
 
