@@ -29,22 +29,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.Properties;
 
 @RestController
 @RequestMapping("/smartclide")
 @CrossOrigin("*")
 public class SmartCLIDEController {
+	
 
     //Environmental variable, token to access SonarQube.
     //private static String token =  System.getenv("TOKEN") ;
 	
-	@Value("${sonar.user}")
+	//@Value("${sonar.user}")
     private static String sonar_user;
     
-	@Value("${sonar.password}")
+	//@Value("${sonar.password}")
 	private static String sonar_password;
 	
-	@Value("${sonar.host}")
+	//@Value("${sonar.host}")
     public static String sonar_host;
 
     @Autowired
@@ -60,6 +62,23 @@ public class SmartCLIDEController {
     @Autowired
     private VPService vpService;
 
+
+	public static void getEnvs(){
+		
+		try (InputStream inputStream = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("application.properties")) {
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        sonar_user = properties.getProperty("sonar.user");
+		sonar_password = properties.getProperty("sonar.password");
+		sonar_host = properties.getProperty("sonar.host");
+		}catch (IOException ex) {
+			System.out.println(ex.getMessage());
+		}
+	}
+		
+		
+	
     //  Endpoint, providing GitHub URL, downloading and analyzing the project with default values of the CK and PMD tools.
 
     //Analyze compiled java project from zip file
@@ -106,7 +125,7 @@ public class SmartCLIDEController {
 
         //SONARQUBE checking if already analyzed and analyze
 
-
+		SmartCLIDEController.getEnvs();
         if (!sonarqubeService.projectExists(name, sonar_user,sonar_password)) {
             this.sonarqubeService.sonarMavenAnalysis(name, name, sonar_user,sonar_password,"zip");
             //TimeUnit.SECONDS.sleep(0);
@@ -183,7 +202,6 @@ public class SmartCLIDEController {
     @RequestMapping(method = RequestMethod.POST, value = "/analyze", params = {"url", "language"})
     //public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
     public ResponseEntity<JsonObject> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException, JDOMException, XPathExpressionException {
-
         UUID id = UUID.randomUUID();
 
 
@@ -194,7 +212,9 @@ public class SmartCLIDEController {
         if (matcher.find()) {
             name = matcher.group(2);
         }
-
+		
+		SmartCLIDEController.getEnvs();
+				
         boolean analyzed = this.sonarqubeService.projectExists(name, sonar_user, sonar_password);
         File dir = new File("/home/upload/" + name);
 

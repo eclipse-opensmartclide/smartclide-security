@@ -12,7 +12,7 @@ services:
       - mongodb_data:/data/db
   sonarqube:
     container_name: sonarqube
-    image: iliakalo/sonar
+    image: iliakalo/sonar:latest
     ports:
       - "9000:9000"
     networks:
@@ -23,14 +23,14 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
   ssas:
     container_name: ssas
-    image: iliakalo/ssas
+    image: iliakalo/ssas:latest
     ports:
       - "8080:8080"
     networks:
       - custom-bridge2
   vam:
     container_name: vam
-    image: iliakalo/vam
+    image: iliakalo/vam:latest
     environment:
       - MONGO_IP=mongodb
       - MONGO_PORT=27017
