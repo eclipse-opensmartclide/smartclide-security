@@ -22,6 +22,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -45,12 +46,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.theia.controller.SmartCLIDEController.sonar_host;
-
-
-
 @Service
 public class SonarqubeService {
+	
+	@Value("${sonar.host}")
+    private String sonar_host;
+	
     @Autowired
     private RestTemplate restTemplate;
 

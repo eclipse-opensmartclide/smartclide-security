@@ -29,23 +29,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 @RestController
 @RequestMapping("/smartclide")
 @CrossOrigin("*")
 public class SmartCLIDEController {
-
-    //Environmental variable, token to access SonarQube.
-    //private static String token =  System.getenv("TOKEN") ;
+	
 	
 	@Value("${sonar.user}")
-    private static String sonar_user;
+    private String sonar_user;
     
 	@Value("${sonar.password}")
-	private static String sonar_password;
-	
-	@Value("${sonar.host}")
-    public static String sonar_host;
+	private String sonar_password;
 
     @Autowired
     private TheiaService theiaService;
@@ -59,7 +53,8 @@ public class SmartCLIDEController {
     private SonarqubeService sonarqubeService;
     @Autowired
     private VPService vpService;
-
+		
+	
     //  Endpoint, providing GitHub URL, downloading and analyzing the project with default values of the CK and PMD tools.
 
     //Analyze compiled java project from zip file
@@ -105,7 +100,6 @@ public class SmartCLIDEController {
         analysis.put("PMD", pmdValues);
 
         //SONARQUBE checking if already analyzed and analyze
-
 
         if (!sonarqubeService.projectExists(name, sonar_user,sonar_password)) {
             this.sonarqubeService.sonarMavenAnalysis(name, name, sonar_user,sonar_password,"zip");
@@ -183,7 +177,6 @@ public class SmartCLIDEController {
     @RequestMapping(method = RequestMethod.POST, value = "/analyze", params = {"url", "language"})
     //public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
     public ResponseEntity<JsonObject> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException, JDOMException, XPathExpressionException {
-
         UUID id = UUID.randomUUID();
 
 
@@ -194,7 +187,7 @@ public class SmartCLIDEController {
         if (matcher.find()) {
             name = matcher.group(2);
         }
-
+				
         boolean analyzed = this.sonarqubeService.projectExists(name, sonar_user, sonar_password);
         File dir = new File("/home/upload/" + name);
 
