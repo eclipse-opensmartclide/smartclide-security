@@ -11,6 +11,7 @@ import org.jdom2.JDOMException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,25 +30,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import java.util.Properties;
-
+@Component
 @RestController
 @RequestMapping("/smartclide")
 @CrossOrigin("*")
 public class SmartCLIDEController {
 	
-
-    //Environmental variable, token to access SonarQube.
-    //private static String token =  System.getenv("TOKEN") ;
 	
-	//@Value("${sonar.user}")
-    private static String sonar_user;
+	@Value("${sonar.user}")
+    private String sonar_user;
     
-	//@Value("${sonar.password}")
-	private static String sonar_password;
-	
-	//@Value("${sonar.host}")
-    public static String sonar_host;
+	@Value("${sonar.password}")
+	private String sonar_password;
 
     @Autowired
     private TheiaService theiaService;
@@ -61,22 +55,6 @@ public class SmartCLIDEController {
     private SonarqubeService sonarqubeService;
     @Autowired
     private VPService vpService;
-
-
-	public static void getEnvs(){
-		
-		try (InputStream inputStream = Thread.currentThread().getContextClassLoader()
-            .getResourceAsStream("application.properties")) {
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        sonar_user = properties.getProperty("sonar.user");
-		sonar_password = properties.getProperty("sonar.password");
-		sonar_host = properties.getProperty("sonar.host");
-		}catch (IOException ex) {
-			System.out.println(ex.getMessage());
-		}
-	}
-		
 		
 	
     //  Endpoint, providing GitHub URL, downloading and analyzing the project with default values of the CK and PMD tools.
@@ -125,7 +103,6 @@ public class SmartCLIDEController {
 
         //SONARQUBE checking if already analyzed and analyze
 
-		SmartCLIDEController.getEnvs();
         if (!sonarqubeService.projectExists(name, sonar_user,sonar_password)) {
             this.sonarqubeService.sonarMavenAnalysis(name, name, sonar_user,sonar_password,"zip");
             //TimeUnit.SECONDS.sleep(0);
@@ -212,8 +189,6 @@ public class SmartCLIDEController {
         if (matcher.find()) {
             name = matcher.group(2);
         }
-		
-		SmartCLIDEController.getEnvs();
 				
         boolean analyzed = this.sonarqubeService.projectExists(name, sonar_user, sonar_password);
         File dir = new File("/home/upload/" + name);

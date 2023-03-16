@@ -26,6 +26,8 @@ services:
     image: iliakalo/ssas:latest
     ports:
       - "8080:8080"
+    environment:
+      - sonarHost=sonarqube
     networks:
       - custom-bridge2
   vam:
