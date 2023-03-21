@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/smartclide")
-@CrossOrigin("*")
+
 public class SmartCLIDEController {
 	
 	
