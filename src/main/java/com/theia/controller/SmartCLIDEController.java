@@ -31,15 +31,14 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/smartclide")
-@CrossOrigin("*")
 public class SmartCLIDEController {
 	
 	
-	@Value("${sonar.user}")
+    @Value("${sonar.user}")
     private String sonar_user;
     
-	@Value("${sonar.password}")
-	private String sonar_password;
+    @Value("${sonar.password}")
+    private String sonar_password;
 
     @Autowired
     private TheiaService theiaService;
@@ -62,18 +61,13 @@ public class SmartCLIDEController {
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE} )
     public ResponseEntity<JsonObject> githubRetrieve(@RequestParam MultipartFile zip,@RequestPart  LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
-
-
-
         String filename = zip.getOriginalFilename();
         String StringDir = this.fileUtilService.saveFolder(zip, filename);
         String name =filename.substring(0, filename.lastIndexOf('.'));
 
         File dir = new File(StringDir);
 
-
         //Get CK amd metricKey values from the request
-
         sonarProperties.get("CK").put("loc", new ArrayList<>());
         HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
         Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
@@ -81,26 +75,21 @@ public class SmartCLIDEController {
         LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
         //Analyzing project with CK tool, alongside with the default values chosed for the CK tool
-
         ArrayList<String> stone = new ArrayList<>(sonarProperties.get("CK").keySet());
 
         Files.setPosixFilePermissions(Paths.get(StringDir), PosixFilePermissions.fromString("rwxr-x---"));
-
 
         HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(sonarProperties.get("CK").keySet()));
         analysis.put("CK", ckValues);
 
         //Analyzing with PMD tool, alongside with default values chosed for the PMD tool.
         PMDvalues valuesPMD = new PMDvalues();
-
-        //HashMap<String, Double> pmdValues = this.pmdService.generateCustomPMDValues(ckValues.get("loc"), StringDir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
-
+        
         valuesPMD = this.pmdService.generateCustomPMDValues(false,ckValues.get("loc"), StringDir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
         HashMap<String, Double> pmdValues = valuesPMD.measurePMDProperties;
         analysis.put("PMD", pmdValues);
 
         //SONARQUBE checking if already analyzed and analyze
-
         if (!sonarqubeService.projectExists(name, sonar_user,sonar_password)) {
             this.sonarqubeService.sonarMavenAnalysis(name, name, sonar_user,sonar_password,"zip");
             //TimeUnit.SECONDS.sleep(0);
@@ -110,18 +99,15 @@ public class SmartCLIDEController {
         //Analyze Sonarqube Metrics Hardcoded.
         Double linesOfCode = this.sonarqubeService.linesOfCode(sonar_user,sonar_password, name);
 
-
         //Analyze
         //Sonarqube Vulnerabilities Hardcoded.
 
         sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomVulnerabilities(sonar_user,sonar_password, sonarProperties.get("Sonarqube").keySet(), name, linesOfCode));
 
-
         analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
         HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
         analysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(sonar_user,sonar_password, sonarMetrics, name));
         analysis.put("Property_Scores", propertyScores);
-
 
         //Calculating characteristic res for the characteristics the user chose.
         HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
@@ -137,7 +123,6 @@ public class SmartCLIDEController {
         Set<String> catg = new HashSet<>(sonarAnalysis.get("Sonarqube").keySet());
 
         //Get hotspots from Sonarqube
-
         HashMap<String, JsonArray> hashHot = new HashMap<>();
         hashHot = this.sonarqubeService.hotspotSearch(catg, sonar_user, sonar_password, name);
 
@@ -152,33 +137,25 @@ public class SmartCLIDEController {
         JsonObject jsonObjectHash = new Gson().fromJson(jsonHash, JsonObject.class);
         JsonObject jsonObjectRecords= new Gson().fromJson(jsonRecords, JsonObject.class);
 
-
         jsonObject.add("Hotspots", jsonObjectHash);
         jsonObject.add("PMD_issues", jsonObjectRecords);
 
         return new ResponseEntity<JsonObject>(jsonObject, HttpStatus.OK);
-
     }
 
     //Vulnerability Assessment API
     @RequestMapping(method = RequestMethod.GET, value = "/VulnerabilityAssessment")
     public ResponseEntity<JsonObject> vulnerabilityPrediction(@RequestParam("project") String url, @RequestParam("lang")String language, @RequestParam("user_name") Optional<String> user_name) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
-
         String analysis = this.vpService.vulnerabilityPrediction(url, language, user_name);
         JsonObject jsonObject = new Gson().fromJson(analysis, JsonObject.class);
 
         return new ResponseEntity<>(jsonObject, HttpStatus.CREATED);
-
     }
-
-
-
 
     @RequestMapping(method = RequestMethod.POST, value = "/analyze", params = {"url", "language"})
     //public ResponseEntity<HashMap<String, HashMap<String, Double>>> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException {
     public ResponseEntity<JsonObject> githubRetrieve(@RequestParam("url") String url, @RequestParam("language")String language, @RequestBody LinkedHashMap<String, LinkedHashMap<String, List<Double>>> sonarProperties) throws IOException, InterruptedException, ParserConfigurationException, SAXException, ParseException, JDOMException, XPathExpressionException {
         UUID id = UUID.randomUUID();
-
 
         Pattern pattern = Pattern.compile("(\\/)(?!.*\\1)(.*)(.git)");
         Matcher matcher = pattern.matcher(url);
@@ -197,28 +174,18 @@ public class SmartCLIDEController {
 
         boolean exists = this.theiaService.retrieveGithubCode(url, id);
 
-
-
         if (language.equals("Maven")) {
-
-
             //Get CK amd metricKey values from the request
-
             sonarProperties.get("CK").put("loc", new ArrayList<>());
             HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
             Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
 
-
             //Download git repository if it is not downloaded already, create a folder name with SHA from latest commit
-
-
             Files.setPosixFilePermissions(Paths.get("/home/upload/" + name), PosixFilePermissions.fromString("rwxr-x---"));
-
 
             LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
 
             //Analyzing project with CK tool, alongside with the default values chosed for the CK tool
-
             ArrayList<String> stone = new ArrayList<>(sonarProperties.get("CK").keySet());
 
             HashMap<String, Double> ckValues = this.ckService.generateCustomCKValues(dir, new ArrayList<>(sonarProperties.get("CK").keySet()));
@@ -228,16 +195,12 @@ public class SmartCLIDEController {
             PMDvalues valuesPMD = new PMDvalues();
 
             //SONARQUBE checking if already analyzed and analyze
-
             if ((!analyzed)) {
                 this.sonarqubeService.sonarMavenAnalysis(name, name, sonar_user, sonar_password, "git");
                 //TimeUnit.SECONDS.sleep(0);
                 valuesPMD = this.pmdService.generateCustomPMDValues(exists,ckValues.get("loc"), dir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
-
-            }
-            else{
+            } else {
                 valuesPMD = this.pmdService.generateCustomPMDValues(exists,ckValues.get("loc"), dir.toString(), new ArrayList<>(sonarProperties.get("PMD").keySet()));
-
             }
 
             HashMap<String, Double> pmdValues = valuesPMD.measurePMDProperties;
@@ -247,24 +210,18 @@ public class SmartCLIDEController {
             //Analyze Sonarqube Metrics Hardcoded.
             Double linesOfCode = this.sonarqubeService.linesOfCode(sonar_user, sonar_password, name);
 
-
             //Analyze
             //Sonarqube Vulnerabilities Hardcoded.
-
             sonarAnalysis.put("Sonarqube", this.sonarqubeService.sonarqubeCustomVulnerabilities(sonar_user, sonar_password, sonarProperties.get("Sonarqube").keySet(), name, linesOfCode));
-
 
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
             Set<String> catg = new HashSet<>(sonarAnalysis.get("Sonarqube").keySet());
 
-
-//            JsonArray jsonObject = new JsonParser().parse(jsonHotspots).getAsJsonArray();
             HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
             analysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(sonar_user, sonar_password, sonarMetrics, name));
 
             analysis.put("Property_Scores", propertyScores);
-
 
             //Calculating characteristic res for the characteristics the user chose.
             HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
@@ -279,7 +236,6 @@ public class SmartCLIDEController {
             ////// Return the analysis map.
             HashMap<String, JsonArray> hashHot = new HashMap<>();
             hashHot = this.sonarqubeService.hotspotSearch(catg, sonar_user, sonar_password, name);
-
 
             Gson gson = new Gson();
             String jsonHash = gson.toJson(hashHot);
@@ -296,33 +252,18 @@ public class SmartCLIDEController {
             return new ResponseEntity<JsonObject>(jsonObject, HttpStatus.OK);
 
         } else if ((language.equals("Javascript")) || (language.equals("Python"))) {
-
-
             //  Get Metric Keys
             HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
 
             Set<String> sonarMetrics = Set.copyOf(sonarProperties.get("metricKeys").keySet());
 
-
             LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
-//            File dir = new File("/home/upload/" + id.toString());
-//            if (dir.exists()) {
-//                FileUtils.deleteDirectory(dir);
-//            }
-
-
-
 
             if (!analyzed) {
                 this.sonarqubeService.sonarScannerAnalysis( name, sonar_user,sonar_password);
-                //TimeUnit.SECONDS.sleep(20);
-
             }
 
-
             Double linesOfCode = this.sonarqubeService.linesOfCode(sonar_user,sonar_password, name);
-
 
             sonarAnalysis.put("metrics", this.sonarqubeService.sonarqubeCustomMetrics(sonar_user,sonar_password, sonarMetrics, name));
 
@@ -335,19 +276,16 @@ public class SmartCLIDEController {
             analysis.put("metrics", sonarAnalysis.get("metrics"));
 
             // Calculating characteristic scores for the characteristics the user chose.
-
             HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
             analysis.put("Characteristic_Scores", characteristicScores);
 
             // Calculating security index.
-
             HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
             analysis.put("Security_index", securityIndex);
 
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
 
             Set<String> catg =new HashSet<>(sonarAnalysis.get("Sonarqube").keySet());
-
 
             HashMap<String, JsonArray> hashHot = new HashMap<>();
             hashHot = this.sonarqubeService.hotspotSearch(catg, sonar_user, sonar_password, name);
@@ -365,39 +303,18 @@ public class SmartCLIDEController {
             return new ResponseEntity<JsonObject>(jsonObject, HttpStatus.OK);
 
         } else if (language.equals("CPP")) {
-
-
             //Download git repository if it is not downloaded already, create a folder name with SHA from latest commit
-
-            //File dir = new File("/home/upload/" + id.toString());
-
-//            if (dir.exists()) {
-//                FileUtils.deleteDirectory(dir);
-//            }
-
-
-
-            //File folderSHA = new File("/home/upload/" + name);
-            //dir.renameTo(folderSHA);
 
             //Run CPP analysis
             if (!analyzed) {
                 this.sonarqubeService.sonarCppAnalysis(exists,name, name,  sonar_user,sonar_password);
-
                 TimeUnit.SECONDS.sleep(30);
-
-            }
-            else if(exists==false){
-
+            } else if(exists==false){
                 this.sonarqubeService.runCPPcheck(name);
-
-
             }
-
 
             HashMap<String, HashMap<String, Double>> sonarAnalysis = new HashMap<>();
             LinkedHashMap<String, HashMap<String, Double>> analysis = new LinkedHashMap<>();
-
 
             Double linesOfCode = this.sonarqubeService.linesOfCode(sonar_user,sonar_password, name);
 
@@ -405,7 +322,6 @@ public class SmartCLIDEController {
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
             HashMap<String, Double> propertyScores = MeasureService.measureCustomPropertiesScore(analysis, sonarProperties);
             sonarAnalysis.put("Property_Scores", propertyScores);
-
 
             // Calculating characteristic scores for the characteristics the user chose.
             HashMap<String, Double> characteristicScores = MeasureService.measureCustomCharacteristicsScore(propertyScores, sonarProperties);
@@ -415,27 +331,21 @@ public class SmartCLIDEController {
             HashMap<String, Double> securityIndex = MeasureService.measureSecurityIndex(characteristicScores);
             sonarAnalysis.put("Security_index", securityIndex);
 
-
             analysis.put("Sonarqube", sonarAnalysis.get("Sonarqube"));
             Gson gson = new Gson();
             String jsonString = gson.toJson(sonarAnalysis);
             String xmlcpp = gson.toJson(this.sonarqubeService.iterateXML(name));
-
 
             JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
             JsonArray jsonXML= new Gson().fromJson(xmlcpp, JsonArray.class);
             jsonObject.add("CPP",jsonXML);
 
             return new ResponseEntity<JsonObject>(jsonObject, HttpStatus.OK);
-
-
-        }else {
-            //      Return the analysis map.
+        } else {
+            // Return the analysis map.
             return new ResponseEntity<>(null, HttpStatus.CREATED);
         }
     }
-
-
 
     public static void updateEnv(String name, String val) throws ReflectiveOperationException {
         Map<String, String> env = System.getenv();
@@ -448,19 +358,13 @@ public class SmartCLIDEController {
         List<Object> list = new ArrayList<Object>();
         for(int i = 0; i < array.size(); i++) {
             Object value = array.get(i);
-
             list.add(value);
         }
         return list;
     }
 
-
-
-
-
     @GetMapping("/test")
     public ResponseEntity<String> test(){
         return new ResponseEntity<>("Hello", HttpStatus.OK);
     }
-
 }
