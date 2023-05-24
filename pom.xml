@@ -105,7 +105,7 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>4.8.0.201706111038-r</version>
+			<version>6.5.0.202303070854-r</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
