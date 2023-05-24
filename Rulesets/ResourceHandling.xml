@@ -1,28 +1,32 @@
-<?xml version="1.0"?>
-<!--
-  Copyright (C) 2021-2022 CERTH
-  
-  This program and the accompanying materials are made
-  available under the terms of the Eclipse Public License 2.0
-  which is available at https://www.eclipse.org/legal/epl-2.0/
-  
-  SPDX-License-Identifier: EPL-2.0
--->
-<ruleset name="resourceHandRuleset" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" >
-
- <description>
-   SDK ruleset Replica
- </description>
-
-<rule ref="category/java/errorprone.xml/DoNotCallGarbageCollectionExplicitly" />
-
-<rule ref="category/java/errorprone.xml/CloseResource" />
-
-<rule ref="category/java/errorprone.xml/InstantiationToGetClass" />
-
-<rule ref="category/java/errorprone.xml/UnnecessaryCaseChange" />
-
-
-<!-- Instatiation Rules - Check if they should be assigned to Assignment Property -->
-
+<ruleset xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="resourceHandRuleset" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+    <rule ref="rulesets/java/controversial.xml/DoNotCallGarbageCollectionExplicitly"/>
+    <rule ref="rulesets/java/design.xml/FinalFieldCouldBeStatic"/>
+    <rule ref="rulesets/java/design.xml/CloseResource"/>
+    <rule ref="rulesets/java/design.xml/OptimizableToArrayCall"/>
+    <rule ref="rulesets/java/design.xml/InstantiationToGetClass"/>
+    <rule ref="rulesets/java/optimizations.xml/AvoidInstantiatingObjectsInLoops"/>
+    <rule ref="rulesets/java/optimizations.xml/UseArrayListInsteadOfVector"/>
+    <rule ref="rulesets/java/optimizations.xml/UseStringBufferForStringAppends"/>
+    <rule ref="rulesets/java/optimizations.xml/UseArraysAsList"/>
+    <rule ref="rulesets/java/optimizations.xml/AvoidArrayLoops"/>
+    <rule ref="rulesets/java/optimizations.xml/UnnecessaryWrapperObjectCreation"/>
+    <rule ref="rulesets/java/optimizations.xml/AddEmptyString"/>
+    <rule ref="rulesets/java/strings.xml/InefficientStringBuffering"/>
+    <rule ref="rulesets/java/strings.xml/UnnecessaryCaseChange"/>
+    <rule ref="rulesets/java/strings.xml/ConsecutiveAppendsShouldReuse"/>
+    <rule ref="rulesets/java/strings.xml/UseIndexOfChar"/>
+    <rule ref="rulesets/java/strings.xml/InefficientEmptyStringCheck"/>
+    <rule ref="rulesets/java/strings.xml/InsufficientStringBufferDeclaration"/>
+    <rule ref="rulesets/java/strings.xml/AvoidStringBufferField"/>
+    <rule ref="rulesets/java/strings.xml/ConsecutiveLiteralAppends"/>
+    <rule ref="rulesets/java/migrating.xml/ReplaceVectorWithList"/>
+    <rule ref="rulesets/java/migrating.xml/ReplaceHashtableWithMap"/>
+    <rule ref="rulesets/java/migrating.xml/ReplaceEnumerationWithIterator"/>
+    <!--  Instatiation Rules - Check if they should be assigned to Assignment Property  -->
+    <rule ref="rulesets/java/migrating.xml/ByteInstantiation"/>
+    <rule ref="rulesets/java/migrating.xml/ByteInstantiation"/>
+    <rule ref="rulesets/java/migrating.xml/LongInstantiation"/>
+    <rule ref="rulesets/java/strings.xml/StringInstantiation"/>
+    <rule ref="rulesets/java/basic.xml/BooleanInstantiation"/>
+    <rule ref="rulesets/java/basic.xml/BigIntegerInstantiation"/>
 </ruleset>

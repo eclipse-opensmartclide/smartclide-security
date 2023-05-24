@@ -25,7 +25,13 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.MultipartConfigElement;
 
 @SpringBootApplication
-public class TheiaBackEndApplication {
+public class 	TheiaBackEndApplication {
+
+
+	@Bean
+	public RestTemplate restTesmplate() {
+		return new RestTemplate();
+	}
 	@Bean
 	public MultipartConfigElement getMultiConfig(){
 		MultipartConfigFactory factory = new MultipartConfigFactory();

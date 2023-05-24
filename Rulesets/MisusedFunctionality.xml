@@ -10,38 +10,51 @@
 -->
 <ruleset name="badFunRuleset" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd" >
 
- <description>
-   SDK ruleset Replica
- </description>
+    <rule ref="rulesets/java/basic.xml/OverrideBothEqualsAndHashcode"/>
 
-<rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode" />
+    <rule ref="rulesets/java/basic.xml/ClassCastExceptionWithToArray"/>
 
-<rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray" />
+    <rule ref="rulesets/java/clone.xml"/>
 
-<rule ref="category/java/errorprone.xml/CheckSkipResult" />
+    <rule ref="rulesets/java/basic.xml/CheckResultSet"/>
 
-<rule ref="category/java/errorprone.xml/DontImportSun" />
+    <rule ref="rulesets/java/basic.xml/CheckSkipResult"/>
 
-<rule ref="category/java/errorprone.xml/NonStaticInitializer" />
+    <rule ref="rulesets/java/controversial.xml/DontImportSun"/>
 
-<rule ref="category/java/errorprone.xml/CompareObjectsWithEquals" />
+    <rule ref="rulesets/java/controversial.xml/CallSuperInConstructor"/>
 
+    <rule ref="rulesets/java/controversial.xml/AvoidUsingNativeCode"/>
 
-<rule ref="category/java/errorprone.xml/SingletonClassReturningNewInstance" />
+    <rule ref="rulesets/java/controversial.xml/AtLeastOneConstructor"/>
 
-<rule ref="category/java/errorprone.xml/ConstructorCallsOverridableMethod" />
+    <rule ref="rulesets/java/design.xml/NonStaticInitializer"/>
 
-<rule ref="category/java/errorprone.xml/UseProperClassLoader" />
+    <rule ref="rulesets/java/design.xml/CompareObjectsWithEquals"/>
 
-<rule ref="category/java/errorprone.xml/StaticEJBFieldShouldBeFinal" />
+    <rule ref="rulesets/java/design.xml/NonThreadSafeSingleton"/>
 
-<rule ref="category/java/errorprone.xml/StringBufferInstantiationWithChar" />
+    <rule ref="rulesets/java/design.xml/SingletonClassReturningNewInstance"/>
 
-<rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings" />
+    <rule ref="rulesets/java/design.xml/ConstructorCallsOverridableMethod"/>
 
-<rule ref="category/java/errorprone.xml/CloneMethodMustImplementCloneable" />
+    <rule ref="rulesets/java/j2ee.xml/UseProperClassLoader"/>
 
-<rule ref="category/java/errorprone.xml/CallSuperFirst" />
+    <rule ref="rulesets/java/j2ee.xml/StaticEJBFieldShouldBeFinal"/>
 
-<rule ref="category/java/errorprone.xml/CallSuperLast" />
+    <rule ref="rulesets/java/javabeans.xml"/>
+
+    <rule ref="rulesets/java/strings.xml/AppendCharacterWithChar"/>
+
+    <rule ref="rulesets/java/strings.xml/StringBufferInstantiationWithChar"/>
+
+    <rule ref="rulesets/java/strings.xml/UseEqualsToCompareStrings"/>
+
+    <rule ref="rulesets/java/typeresolution.xml/LooseCoupling"/>
+
+    <rule ref="rulesets/java/typeresolution.xml/CloneMethodMustImplementCloneable"/>
+
+    <rule ref="rulesets/java/android.xml/CallSuperFirst"/>
+
+    <rule ref="rulesets/java/android.xml/CallSuperLast"/>
 </ruleset>

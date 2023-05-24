@@ -1,9 +1,18 @@
 version: "3.2"
+
 services:
- sonarqube:
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    networks:
+      - custom-bridge3
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+  sonarqube:
     container_name: sonarqube
-    build: sonarqube
-    image: smartclide2022/sonar
+    image: iliakalo/sonar:latest
     ports:
       - "9000:9000"
     networks:
@@ -12,21 +21,37 @@ services:
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
- 
- ssas:
+  ssas:
     container_name: ssas
-    build: .
-    image: smartclide2022/ssas
+    image: iliakalo/ssas:latest
     ports:
       - "8080:8080"
+    environment:
+      - SONAR_HOST=sonarqube
     networks:
       - custom-bridge2
-  
+  vam:
+    container_name: vam
+    image: iliakalo/vam:latest
+    environment:
+      - MONGO_IP=mongodb
+      - MONGO_PORT=27017
+    depends_on:
+      - mongodb
+    entrypoint: ["bash", "-c", "python vp_service.py $${MONGO_IP} $${MONGO_PORT}; bash"]
+    ports:
+      - "5008:5008"
+    networks:
+      - custom-bridge3
+
 networks:
  custom-bridge2:
-    external: false       
+    external: false
+ custom-bridge3:
+    external: false    
 
 volumes:
   sonarqube_logs:
   sonarqube_data:
   sonarqube_extensions:
+  mongodb_data:

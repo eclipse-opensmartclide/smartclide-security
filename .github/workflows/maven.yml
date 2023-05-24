@@ -1,30 +1,48 @@
-name: Java CI with Maven
-
+name: Security Module CI/CD
 on:
   push:
-    branches: [ main ]
-
+    branches: [main]
+  pull_request:
 jobs:
-  publish_image:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package -DskipTests --file pom.xml
-
-    - name: Publish Docker Image
-      run: |
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "temurin"
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B verify --file pom.xml
+  publish_opensmartclide_security_module_image:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "temurin"
+          cache: maven
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - name: Publish Docker Images
+        run: |
           # login to GitHub Container Registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${GITHUB_ACTOR} --password-stdin
-          # build image
-          docker build . --tag ghcr.io/eclipse-opensmartclide/smartclide/security:$(date +'%Y-%m-%d')
-          # push image
-          docker push ghcr.io/eclipse-opensmartclide/smartclide/security:$(date +'%Y-%m-%d')
+          # build images
+          docker build -t ghcr.io/eclipse-opensmartclide/opensmartclide/ssas:$(date +'%Y-%m-%d') -t ghcr.io/eclipse-opensmartclide/opensmartclide/ssas:latest .
+          docker build -t ghcr.io/eclipse-opensmartclide/opensmartclide/vam:$(date +'%Y-%m-%d') -t ghcr.io/eclipse-opensmartclide/opensmartclide/vam:latest -f VulnerabilityAssessmentModels/Dockerfile ./VulnerabilityAssessmentModels
+          docker build -t ghcr.io/eclipse-opensmartclide/opensmartclide/sonarqube-security-opensmartclide:$(date +'%Y-%m-%d') -t ghcr.io/eclipse-opensmartclide/opensmartclide/sonarqube-security-opensmartclide:latest -f sonarqube/Dockerfile ./sonarqube
+          # push images
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/ssas:$(date +'%Y-%m-%d')
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/ssas:latest
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/vam:$(date +'%Y-%m-%d')
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/vam:latest
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/sonarqube-security-opensmartclide:$(date +'%Y-%m-%d')
+          docker push ghcr.io/eclipse-opensmartclide/opensmartclide/sonarqube-security-opensmartclide:latest
